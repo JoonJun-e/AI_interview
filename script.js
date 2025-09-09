@@ -43,18 +43,27 @@ function showPage(pageId) {
     document.getElementById(pageId).classList.remove('hidden');
 }
 
-// 2. 장치 시작 함수 (카메라 + 마이크)
+// 2. 장치 시작 함수 (카메라 + 마이크) - 버그 수정본
 async function startDevices() {
+    if (localStream) return;
+
     try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        localStream = stream; // 스트림 저장
+        localStream = stream;
         webcamCheck.srcObject = stream;
 
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        analyser = audio-context.createAnalyser();
+        if (!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioContext.state === 'suspended') {
+            await audioContext.resume();
+        }
+
+        analyser = audioContext.createAnalyser();
         const source = audioContext.createMediaStreamSource(stream);
         source.connect(analyser);
         visualizeMic();
+
     } catch (err) {
         console.error("장치 에러:", err);
         alert("카메라와 마이크를 찾을 수 없거나 권한을 허용해야 합니다.");
@@ -95,7 +104,7 @@ function visualizeMic() {
 function startInterview() {
     showPage('interview-page');
     questionTextElement.textContent = "자기소개를 1분 동안 해주세요.";
-    webcamInterview.srcObject = localStream; // 장치확인에서 켠 스트림 재사용
+    webcamInterview.srcObject = localStream;
     startRecording(localStream);
     startTimer(60);
 }
@@ -117,36 +126,56 @@ function startTimer(duration) {
 // 6. 녹음 시작 함수
 function startRecording(stream) {
     recordedChunks = [];
-    mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' });
     mediaRecorder.ondataavailable = event => {
         if (event.data.size > 0) recordedChunks.push(event.data);
     };
     mediaRecorder.start();
 }
 
-// 7. 답변 제출 함수
-function submitAnswer() {
+// 7. 답변 제출 함수 - API 연동 최종본
+async function submitAnswer() {
     clearInterval(timerInterval);
-    if (mediaRecorder && mediaRecorder.state !== "inactive") mediaRecorder.stop();
+    if (mediaRecorder && mediaRecorder.state !== "inactive") {
+        mediaRecorder.stop();
+    }
     
     showPage('loading-page');
 
-    mediaRecorder.onstop = () => {
+    mediaRecorder.onstop = async () => {
         const audioBlob = new Blob(recordedChunks, { type: 'audio/webm' });
-        console.log("녹음 완료! Blob:", audioBlob);
         
-        // 가짜 로딩 및 결과 표시
-        setTimeout(() => {
+        try {
+            const response = await fetch('/api/evaluate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'audio/webm' },
+                body: audioBlob
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'API 호출에 실패했습니다.');
+            }
+
+            const data = await response.json();
+            
             showPage('result-page');
-            resultTextElement.textContent = "결과: 합격";
-        }, 2000);
+            resultTextElement.textContent = `결과: ${data.result}`;
+
+        } catch (error) {
+            console.error('Error submitting answer:', error);
+            alert('오류가 발생했습니다: ' + error.message);
+            showPage('interview-page');
+        }
     };
 }
 
 // --- 이벤트 리스너 설정 ---
 
-// 1. 페이지 로드 시
-window.addEventListener('load', () => showPage('irb-page'));
+// 1. 페이지 로드 시 첫 화면 보여주기
+window.addEventListener('load', () => {
+    showPage('irb-page');
+});
 
 // 2. IRB '다음' 버튼
 irbNextBtn.addEventListener('click', () => {
@@ -176,44 +205,5 @@ infoForm.addEventListener('submit', event => {
 // 4. 장치 확인 '면접 시작하기' 버튼
 startInterviewBtn.addEventListener('click', startInterview);
 
-// 7. 답변 제출 함수
-async function submitAnswer() {
-    clearInterval(timerInterval);
-    if (mediaRecorder && mediaRecorder.state !== "inactive") {
-        mediaRecorder.stop();
-    }
-    
-    showPage('loading-page');
-
-    mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(recordedChunks, { type: 'audio/webm' });
-        
-        try {
-            // 2단계에서 만든 우리 API 주소('/api/evaluate')로 녹음 파일을 보냅니다.
-            const response = await fetch('/api/evaluate', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'audio/webm' // 파일 타입을 명시
-                },
-                body: audioBlob // Blob을 직접 body에 실어 보냅니다.
-            });
-
-            if (!response.ok) {
-                // 서버에서 에러가 발생했을 때
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'API 호출에 실패했습니다.');
-            }
-
-            const data = await response.json();
-            
-            // AI가 보내준 실제 결과로 화면을 업데이트합니다.
-            showPage('result-page');
-            resultTextElement.textContent = `결과: ${data.result}`;
-
-        } catch (error) {
-            console.error('Error submitting answer:', error);
-            alert('오류가 발생했습니다: ' + error.message);
-            showPage('interview-page'); // 오류 발생 시 면접 페이지로 복귀
-        }
-    };
-}
+// 5. '답변 완료 및 제출' 버튼
+submitAnswerBtn.addEventListener('click', submitAnswer);
