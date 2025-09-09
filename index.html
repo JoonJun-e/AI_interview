@@ -70,6 +70,25 @@
         #question-area h3 {
             margin-top: 0;
         }
+        /* --- Toast Notification --- */
+        #toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #e74c3c;
+            color: white;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.5s, bottom 0.5s;
+        }
+        #toast.show {
+            opacity: 1;
+            bottom: 50px;
+        }
     </style>
 </head>
 <body>
@@ -132,6 +151,7 @@
         <p id="result-text">결과가 여기에 표시됩니다.</p>
     </div>
 
+    <div id="toast" class="hidden"></div>
     <script src="script.js"></script>
 </body>
 </html>

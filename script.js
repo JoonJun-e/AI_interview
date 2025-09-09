@@ -2,7 +2,6 @@
 const userData = {};
 
 // --- HTML 요소 전부 가져오기 ---
-// (이전과 동일)
 const irbPage = document.getElementById('irb-page');
 const infoPage = document.getElementById('info-page');
 const deviceCheckPage = document.getElementById('device-check-page');
@@ -39,7 +38,19 @@ function showPage(pageId) {
     document.getElementById(pageId).classList.remove('hidden');
 }
 
-// 2. 장치 시작 함수 - 버그 수정본
+// 2. 알림 메시지(Toast) 함수
+function showToast(message) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.classList.remove('hidden');
+    toast.classList.add('show');
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.classList.add('hidden'), 500);
+    }, 3000);
+}
+
+// 3. 장치 시작 함수 (카메라 + 마이크)
 async function startDevices() {
     if (localStream) return;
     try {
@@ -58,11 +69,11 @@ async function startDevices() {
         visualizeMic();
     } catch (err) {
         console.error("장치 에러:", err);
-        alert("카메라와 마이크를 찾을 수 없거나 권한을 허용해야 합니다.");
+        showToast("카메라와 마이크를 찾을 수 없거나 권한을 허용해야 합니다.");
     }
 }
 
-// 3. 마이크 시각화 함수
+// 4. 마이크 시각화 함수
 function visualizeMic() {
     const bufferLength = analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
@@ -92,18 +103,18 @@ function visualizeMic() {
     draw();
 }
 
-// 4. 면접 시작 함수
+// 5. 면접 시작 함수
 function startInterview() {
     showPage('interview-page');
     questionTextElement.textContent = "자기소개를 1분 동안 해주세요.";
     webcamInterview.srcObject = localStream;
     startRecording(localStream);
-    startTimer(60); // 타이머 시작
+    startTimer(60);
 }
 
-// 5. 타이머 함수 - 수정본
+// 6. 타이머 함수
 function startTimer(duration) {
-    clearInterval(timerInterval); // ★ FIX: 기존 타이머가 있다면 무조건 초기화
+    clearInterval(timerInterval);
     let timeLeft = duration;
     timerInterval = setInterval(() => {
         const minutes = String(Math.floor(timeLeft / 60)).padStart(2, '0');
@@ -115,7 +126,7 @@ function startTimer(duration) {
     }, 1000);
 }
 
-// 6. 녹음 시작 함수
+// 7. 녹음 시작 함수
 function startRecording(stream) {
     recordedChunks = [];
     mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' });
@@ -125,9 +136,13 @@ function startRecording(stream) {
     mediaRecorder.start();
 }
 
-// 7. 녹음 중지 및 파일(Blob) 반환을 위한 Promise 함수
+// 8. 녹음 중지 Promise 함수
 function stopRecording() {
     return new Promise(resolve => {
+        if (mediaRecorder.state === "inactive") {
+            resolve(new Blob(recordedChunks, { type: 'audio/webm' }));
+            return;
+        }
         mediaRecorder.onstop = () => {
             const audioBlob = new Blob(recordedChunks, { type: 'audio/webm' });
             resolve(audioBlob);
@@ -136,30 +151,22 @@ function stopRecording() {
     });
 }
 
-// 8. 답변 제출 함수 - 수정본
+// 9. 답변 제출 함수
 async function submitAnswer() {
-    clearInterval(timerInterval); // 타이머 즉시 중지
+    clearInterval(timerInterval);
     showPage('loading-page');
+    
+    const audioBlob = await stopRecording();
 
-    if (!mediaRecorder || mediaRecorder.state === "inactive") {
-        // 이미 녹음이 중지된 경우 (시간 초과 등)
-        // recordedChunks에 데이터가 있는지 확인 후 처리
-        if (recordedChunks.length === 0) {
-            alert('녹음된 내용이 없습니다. 다시 시도해주세요.');
-            startInterview(); // ★ FIX: 상태를 초기화하고 면접 다시 시작
-            return;
-        }
-        // 이미 데이터가 있다면 Blob으로 만듦
-        const audioBlob = new Blob(recordedChunks, { type: 'audio/webm' });
-        await sendDataToServer(audioBlob);
-    } else {
-        // 녹음이 진행중인 경우
-        const audioBlob = await stopRecording(); // ★ FIX: 녹음이 완전히 멈추고 파일이 만들어질 때까지 기다림
-        await sendDataToServer(audioBlob);
+    if (audioBlob.size === 0) {
+        showToast('녹음된 내용이 없습니다. 다시 시도해주세요.');
+        startInterview();
+        return;
     }
+    await sendDataToServer(audioBlob);
 }
 
-// 9. 서버로 데이터를 전송하는 로직 분리
+// 10. 서버로 데이터 전송 함수
 async function sendDataToServer(blob) {
     try {
         const response = await fetch('/api/evaluate', {
@@ -176,22 +183,23 @@ async function sendDataToServer(blob) {
         resultTextElement.textContent = `결과: ${data.result}`;
     } catch (error) {
         console.error('Error submitting answer:', error);
-        alert('오류가 발생했습니다: ' + error.message);
-        startInterview(); // ★ FIX: 오류 발생 시 상태를 초기화하고 면접을 다시 시작
+        showToast('오류가 발생했습니다: ' + error.message);
+        startInterview();
     }
 }
 
-
 // --- 이벤트 리스너 설정 ---
 window.addEventListener('load', () => showPage('irb-page'));
+
 irbNextBtn.addEventListener('click', () => {
     if (irbCheckbox.checked) {
         userData.irb_consented = true;
         showPage('info-page');
     } else {
-        alert('연구 참여에 동의해야 다음으로 진행할 수 있습니다.');
+        showToast('연구 참여에 동의해야 다음으로 진행할 수 있습니다.');
     }
 });
+
 infoForm.addEventListener('submit', event => {
     event.preventDefault();
     const name = document.getElementById('name').value;
@@ -202,8 +210,9 @@ infoForm.addEventListener('submit', event => {
         showPage('device-check-page');
         startDevices();
     } else {
-        alert('모든 정보를 입력해주세요.');
+        showToast('모든 정보를 입력해주세요.');
     }
 });
+
 startInterviewBtn.addEventListener('click', startInterview);
 submitAnswerBtn.addEventListener('click', submitAnswer);
