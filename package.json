@@ -1,0 +1,16 @@
+{
+  "name": "ai_interview",
+  "version": "1.0.0",
+  "description": "",
+  "main": "script.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@google-cloud/speech": "^7.2.0",
+    "@google-cloud/vertexai": "^1.10.0"
+  }
+}
