@@ -2,35 +2,27 @@ import { SpeechClient } from '@google-cloud/speech';
 import { VertexAI } from '@google-cloud/vertexai';
 import { Readable } from 'stream';
 
-// Vercel에서 파일을 처리하기 위한 설정입니다.
 export const config = {
     api: {
         bodyParser: false,
     },
 };
 
-// Vercel 서버리스 함수의 기본 핸들러
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).send('Method Not Allowed');
     }
-
     try {
         const audioBuffer = await streamToBuffer(req);
 
-        // Google Speech-to-Text API로 보내 텍스트로 변환
         const transcript = await speechToText(audioBuffer);
         console.log('STT Result:', transcript);
-
         if (!transcript) {
             return res.status(200).json({ result: '음성을 인식하지 못했습니다. 다시 시도해주세요.' });
         }
-
-        // 변환된 텍스트를 Gemini API로 보내 합격/불합격 판단
+        
         const result = await getGeminiResult(transcript);
         console.log('Gemini Result:', result);
-
-        // 최종 결과를 브라우저로 전송
         res.status(200).json({ result });
 
     } catch (error) {
@@ -39,4 +31,37 @@ export default async function handler(req, res) {
     }
 }
 
-// --- Helper
+// ★★★ 누락되었던 필수 함수 ★★★
+function streamToBuffer(stream) {
+    return new Promise((resolve, reject) => {
+        const chunks = [];
+        stream.on('data', chunk => chunks.push(chunk));
+        stream.on('end', () => resolve(Buffer.concat(chunks)));
+        stream.on('error', err => reject(err));
+    });
+}
+
+async function speechToText(audioBuffer) {
+    const credentials = JSON.parse(process.env.GCP_CREDENTIALS);
+    const speechClient = new SpeechClient({ credentials });
+
+    const audio = { content: audioBuffer.toString('base64') };
+    const config = {
+        languageCode: 'ko-KR',
+    };
+    const request = { audio, config };
+
+    const [response] = await speechClient.recognize(request);
+    return response.results.map(result => result.alternatives[0].transcript).join('\n');
+}
+
+async function getGeminiResult(text) {
+    const credentials = JSON.parse(process.env.GCP_CREDENTIALS);
+    const projectId = credentials.project_id;
+    const vertexAI = new VertexAI({ project: projectId, location: 'us-central1', credentials });
+    const generativeModel = vertexAI.getGenerativeModel({ model: 'gemini-1.0-pro' });
+    const prompt = `당신은 AI 면접관입니다. 다음 답변을 듣고 '합격' 또는 '불합격'으로 판단해주세요. 다른 어떤 설명은 필요시 추가할 수 있습니다. 답변: "${text}"`;
+    const resp = await generativeModel.generateContent(prompt);
+    const response = resp.response;
+    return response.candidates[0].content.parts[0].text;
+}
