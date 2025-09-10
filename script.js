@@ -103,13 +103,19 @@ function visualizeMic() {
     draw();
 }
 
-// 5. 면접 시작 함수
+// 5. 면접 시작 함수 (start recording 함수 동반 수정)
 function startInterview() {
-    showPage('interview-page');
-    questionTextElement.textContent = "자기소개를 1분 동안 해주세요.";
-    webcamInterview.srcObject = localStream;
-    startRecording(localStream);
-    startTimer(60);
+    try {
+        showPage('interview-page');
+        questionTextElement.textContent = "자기소개를 1분 동안 해주세요.";
+        webcamInterview.srcObject = localStream;
+        
+        startRecording(localStream); // 녹음 시작
+        startTimer(60); // 타이머 시작
+    } catch (error) {
+        console.error("면접 시작 중 오류:", error);
+        showToast("면접을 시작하는 중 오류가 발생했습니다.");
+    }
 }
 
 // 6. 타이머 함수
@@ -129,11 +135,20 @@ function startTimer(duration) {
 // 7. 녹음 시작 함수
 function startRecording(stream) {
     recordedChunks = [];
-    mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' });
+    // ★ FIX: 특정 mimeType을 지정하지 않고 브라우저 기본값을 사용하도록 변경
+    try {
+        mediaRecorder = new MediaRecorder(stream); 
+    } catch (error) {
+        console.error("MediaRecorder 생성 실패:", error);
+        showToast("오디오 녹음을 시작할 수 없습니다. 브라우저 설정을 확인해주세요.");
+        return; // 녹음 시작이 안되면 함수 종료
+    }
+    
     mediaRecorder.ondataavailable = event => {
         if (event.data.size > 0) recordedChunks.push(event.data);
     };
     mediaRecorder.start();
+    console.log("녹음 시작됨");
 }
 
 // 8. 녹음 중지 Promise 함수
