@@ -14,24 +14,20 @@ export default async function handler(req, res) {
     }
     try {
         const audioBuffer = await streamToBuffer(req);
-
         const transcript = await speechToText(audioBuffer);
         console.log('STT Result:', transcript);
         if (!transcript) {
             return res.status(200).json({ result: '음성을 인식하지 못했습니다. 다시 시도해주세요.' });
         }
-        
         const result = await getGeminiResult(transcript);
         console.log('Gemini Result:', result);
         res.status(200).json({ result });
-
     } catch (error) {
         console.error('API Error:', error);
         res.status(500).json({ error: error.message });
     }
 }
 
-// ★★★ 누락되었던 필수 함수 ★★★
 function streamToBuffer(stream) {
     return new Promise((resolve, reject) => {
         const chunks = [];
@@ -41,26 +37,28 @@ function streamToBuffer(stream) {
     });
 }
 
+// 음성을 텍스트로 바꾸는 함수 (수정본)
 async function speechToText(audioBuffer) {
     const credentials = JSON.parse(process.env.GCP_CREDENTIALS);
     const speechClient = new SpeechClient({ credentials });
-
     const audio = { content: audioBuffer.toString('base64') };
     const config = {
+        encoding: 'WEBM_OPUS',
+        sampleRateHertz: 48000,
         languageCode: 'ko-KR',
     };
     const request = { audio, config };
-
     const [response] = await speechClient.recognize(request);
     return response.results.map(result => result.alternatives[0].transcript).join('\n');
 }
 
+// Gemini 결과를 가져오는 함수 (프롬프트 수정사항 반영)
 async function getGeminiResult(text) {
     const credentials = JSON.parse(process.env.GCP_CREDENTIALS);
     const projectId = credentials.project_id;
     const vertexAI = new VertexAI({ project: projectId, location: 'us-central1', credentials });
     const generativeModel = vertexAI.getGenerativeModel({ model: 'gemini-1.0-pro' });
-    const prompt = `당신은 AI 면접관입니다. 다음 답변을 듣고 '합격' 또는 '불합격'으로 판단해주세요. 다른 어떤 설명은 필요시 추가할 수 있습니다. 답변: "${text}"`;
+    const prompt = `당신은 AI 면접관입니다. 다음 답변을 듣고 '합격' 또는 '불합격'으로만 판단해주세요. 다른 어떤 설명은 필요시 추가할 수 있습니다. 답변: "${text}"`;
     const resp = await generativeModel.generateContent(prompt);
     const response = resp.response;
     return response.candidates[0].content.parts[0].text;

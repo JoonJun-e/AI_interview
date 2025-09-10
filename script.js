@@ -103,15 +103,14 @@ function visualizeMic() {
     draw();
 }
 
-// 5. 면접 시작 함수 (start recording 함수 동반 수정)
+// 5. 면접 시작 함수
 function startInterview() {
     try {
         showPage('interview-page');
         questionTextElement.textContent = "자기소개를 1분 동안 해주세요.";
         webcamInterview.srcObject = localStream;
-        
-        startRecording(localStream); // 녹음 시작
-        startTimer(60); // 타이머 시작
+        startRecording(localStream);
+        startTimer(60);
     } catch (error) {
         console.error("면접 시작 중 오류:", error);
         showToast("면접을 시작하는 중 오류가 발생했습니다.");
@@ -132,29 +131,28 @@ function startTimer(duration) {
     }, 1000);
 }
 
-// 7. 녹음 시작 함수
+// 7. 녹음 시작 함수 (수정본)
 function startRecording(stream) {
     recordedChunks = [];
-    // ★ FIX: 특정 mimeType을 지정하지 않고 브라우저 기본값을 사용하도록 변경
-    try {
-        mediaRecorder = new MediaRecorder(stream); 
-    } catch (error) {
-        console.error("MediaRecorder 생성 실패:", error);
-        showToast("오디오 녹음을 시작할 수 없습니다. 브라우저 설정을 확인해주세요.");
-        return; // 녹음 시작이 안되면 함수 종료
+    const options = { mimeType: 'audio/webm;codecs=opus' };
+    if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+        console.error(`${options.mimeType} is not supported! Fallback to default.`);
+        showToast('오디오 녹음 표준 형식이 지원되지 않아 기본값으로 녹음합니다.');
+        mediaRecorder = new MediaRecorder(stream);
+    } else {
+        mediaRecorder = new MediaRecorder(stream, options);
     }
-    
     mediaRecorder.ondataavailable = event => {
         if (event.data.size > 0) recordedChunks.push(event.data);
     };
     mediaRecorder.start();
-    console.log("녹음 시작됨");
+    console.log("녹음 시작됨:", mediaRecorder.mimeType);
 }
 
 // 8. 녹음 중지 Promise 함수
 function stopRecording() {
     return new Promise(resolve => {
-        if (mediaRecorder.state === "inactive") {
+        if (!mediaRecorder || mediaRecorder.state === "inactive") {
             resolve(new Blob(recordedChunks, { type: 'audio/webm' }));
             return;
         }
@@ -170,9 +168,7 @@ function stopRecording() {
 async function submitAnswer() {
     clearInterval(timerInterval);
     showPage('loading-page');
-    
     const audioBlob = await stopRecording();
-
     if (audioBlob.size === 0) {
         showToast('녹음된 내용이 없습니다. 다시 시도해주세요.');
         startInterview();
@@ -205,7 +201,6 @@ async function sendDataToServer(blob) {
 
 // --- 이벤트 리스너 설정 ---
 window.addEventListener('load', () => showPage('irb-page'));
-
 irbNextBtn.addEventListener('click', () => {
     if (irbCheckbox.checked) {
         userData.irb_consented = true;
@@ -214,7 +209,6 @@ irbNextBtn.addEventListener('click', () => {
         showToast('연구 참여에 동의해야 다음으로 진행할 수 있습니다.');
     }
 });
-
 infoForm.addEventListener('submit', event => {
     event.preventDefault();
     const name = document.getElementById('name').value;
@@ -228,6 +222,5 @@ infoForm.addEventListener('submit', event => {
         showToast('모든 정보를 입력해주세요.');
     }
 });
-
 startInterviewBtn.addEventListener('click', startInterview);
 submitAnswerBtn.addEventListener('click', submitAnswer);
