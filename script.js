@@ -103,17 +103,31 @@ function visualizeMic() {
     draw();
 }
 
-// 5. 면접 시작 함수
-function startInterview() {
+// 5. 면접 시작 함수 (최종 수정본)
+async function startInterview() {
     try {
         showPage('interview-page');
         questionTextElement.textContent = "자기소개를 1분 동안 해주세요.";
+
+        // ★★★ 해결책: 면접 시작 직전에 새로운 스트림을 다시 받아옵니다. ★★★
+        if (localStream) {
+            // 이전에 사용했던 스트림(장치 확인용)의 트랙을 모두 정지시킵니다.
+            localStream.getTracks().forEach(track => track.stop());
+        }
+        
+        const newStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        localStream = newStream; // 최신 스트림 정보로 업데이트
+
+        // 면접 페이지의 비디오 요소에 새로운 스트림을 연결합니다.
         webcamInterview.srcObject = localStream;
-        startRecording(localStream);
-        startTimer(60);
+        
+        startRecording(localStream); // '신선한' 스트림으로 녹음 시작
+        startTimer(60); // 타이머 시작
+
     } catch (error) {
         console.error("면접 시작 중 오류:", error);
-        showToast("면접을 시작하는 중 오류가 발생했습니다.");
+        // 오류 메시지를 더 구체적으로 보여줍니다.
+        showToast(`면접 시작 중 오류: ${error.message}`);
     }
 }
 
