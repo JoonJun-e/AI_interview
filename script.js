@@ -50,13 +50,16 @@ function showToast(message) {
     }, 3000);
 }
 
-// 3. 장치 시작 함수 (카메라 + 마이크)
+// 3. 장치 시작 함수 (카메라 + 마이크) - 수정본
 async function startDevices() {
-    if (localStream) return;
+    if (localStream) { // 만약 스트림이 이미 있다면 끄고 새로 시작
+        localStream.getTracks().forEach(track => track.stop());
+    }
     try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        localStream = stream;
+        localStream = stream; // 스트림을 전역 변수에 저장
         webcamCheck.srcObject = stream;
+        
         if (!audioContext) {
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
         }
@@ -103,33 +106,26 @@ function visualizeMic() {
     draw();
 }
 
-// 5. 면접 시작 함수 (최종 수정본)
-async function startInterview() {
+// 5. 면접 시작 함수 - 수정본
+function startInterview() {
+    // ★ FIX: 스트림을 새로고침하는 대신, 이미 켜져있는 localStream을 그대로 사용합니다.
+    if (!localStream || !localStream.active) {
+        showToast("카메라/마이크가 활성화되지 않았습니다. 페이지를 새로고침 해주세요.");
+        return;
+    }
     try {
         showPage('interview-page');
         questionTextElement.textContent = "자기소개를 1분 동안 해주세요.";
-
-        // ★★★ 해결책: 면접 시작 직전에 새로운 스트림을 다시 받아옵니다. ★★★
-        if (localStream) {
-            // 이전에 사용했던 스트림(장치 확인용)의 트랙을 모두 정지시킵니다.
-            localStream.getTracks().forEach(track => track.stop());
-        }
+        webcamInterview.srcObject = localStream; // 장치 확인에서 켠 스트림을 그대로 연결
         
-        const newStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        localStream = newStream; // 최신 스트림 정보로 업데이트
-
-        // 면접 페이지의 비디오 요소에 새로운 스트림을 연결합니다.
-        webcamInterview.srcObject = localStream;
-        
-        startRecording(localStream); // '신선한' 스트림으로 녹음 시작
+        startRecording(localStream); // 활성화된 스트림으로 녹음 시작
         startTimer(60); // 타이머 시작
-
     } catch (error) {
         console.error("면접 시작 중 오류:", error);
-        // 오류 메시지를 더 구체적으로 보여줍니다.
         showToast(`면접 시작 중 오류: ${error.message}`);
     }
 }
+
 
 // 6. 타이머 함수
 function startTimer(duration) {
