@@ -4,11 +4,11 @@ const userData = {};
 // --- HTML 요소 전부 가져오기 ---
 const irbPage = document.getElementById('irb-page');
 const infoPage = document.getElementById('info-page');
-const interviewWrapperPage = document.getElementById('interview-wrapper-page');
+const interviewWrapperPage = document.getElementById('interview-wrapper-page'); // 수정
 const loadingPage = document.getElementById('loading-page');
 const resultPage = document.getElementById('result-page');
 
-// 통합 페이지 내부 UI 그룹
+// UI 그룹 요소
 const checkUI = document.getElementById('check-ui');
 const micCheckUI = document.getElementById('mic-check-ui');
 const interviewUI = document.getElementById('interview-ui');
@@ -21,7 +21,7 @@ const startInterviewBtn = document.getElementById('start-interview-btn');
 const submitAnswerBtn = document.getElementById('submit-answer-btn');
 
 // 미디어 및 시각화 요소
-const webcamInterview = document.getElementById('webcam-interview');
+const webcamInterview = document.getElementById('webcam-interview'); // 하나로 통합
 const canvas = document.getElementById('mic-visualizer');
 const canvasCtx = canvas.getContext('2d');
 const timerElement = document.getElementById('timer');
@@ -35,9 +35,68 @@ let mediaRecorder;
 let recordedChunks = [];
 let timerInterval;
 
-// --- 핵심 함수들 ---
+// --- 페이지/UI 전환 함수 ---
+function showPage(pageId) { /* 이전과 동일 */ }
+function showToast(message) { /* 이전과 동일 */ }
 
-// 1. 페이지/UI 전환 함수
+// --- 장치 시작 및 면접 진행 로직 (단순화) ---
+async function setupDevicesAndInterview() {
+    if (localStream) return;
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        localStream = stream;
+        webcamInterview.srcObject = stream; // 비디오 요소에 바로 연결
+        
+        // 마이크 시각화 설정
+        audioContext = new (window.Audio-context || window.webkitAudioContext)();
+        if (audioContext.state === 'suspended') await audioContext.resume();
+        analyser = audioContext.createAnalyser();
+        const source = audioContext.createMediaStreamSource(stream);
+        source.connect(analyser);
+        visualizeMic();
+    } catch (err) {
+        showToast("카메라/마이크 활성화에 실패했습니다: " + err.message);
+    }
+}
+
+function startInterview() {
+    // UI "변신"
+    checkUI.classList.add('hidden');
+    micCheckUI.classList.add('hidden');
+    startInterviewBtn.classList.add('hidden');
+    interviewUI.classList.remove('hidden');
+    submitAnswerBtn.classList.remove('hidden');
+
+    questionTextElement.textContent = "자기소개를 1분 동안 해주세요.";
+    
+    // 이미 켜져있는 스트림으로 녹음 및 타이머 시작
+    startRecording(localStream);
+    startTimer(60);
+}
+
+// --- 나머지 함수들 (이전과 동일) ---
+function visualizeMic() { /* 이전과 동일 */ }
+function startTimer(duration) { /* 이전과 동일 */ }
+function startRecording(stream) { /* 이전과 동일, mimeType 지정 버전 */ }
+function stopRecording() { /* 이전과 동일 */ }
+async function submitAnswer() { /* 이전과 동일 */ }
+async function sendDataToServer(blob) { /* 이전과 동일 */ }
+
+// --- 이벤트 리스너 ---
+window.addEventListener('load', () => showPage('irb-page'));
+irbNextBtn.addEventListener('click', () => { /* 이전과 동일 */ });
+infoForm.addEventListener('submit', event => {
+    event.preventDefault();
+    // 개인정보 저장... (이전과 동일)
+    showPage('interview-wrapper-page'); // 통합된 페이지 보여주기
+    setupDevicesAndInterview(); // 장치 켜기
+});
+startInterviewBtn.addEventListener('click', startInterview); // 면접 UI로 "변신"
+submitAnswerBtn.addEventListener('click', submitAnswer);
+
+
+// --- 여기에 복붙할 전체 함수 목록 ---
+
 function showPage(pageId) {
     document.querySelectorAll('.page').forEach(page => {
         page.classList.add('hidden');
@@ -56,49 +115,13 @@ function showToast(message) {
     }, 3000);
 }
 
-// 2. 장치 시작 및 면접 준비 함수 (단순화된 최종본)
-async function setupDevicesAndInterview() {
-    if (localStream) return;
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        localStream = stream;
-        webcamInterview.srcObject = stream;
-        
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        if (audioContext.state === 'suspended') await audioContext.resume();
-        analyser = audioContext.createAnalyser();
-        const source = audioContext.createMediaStreamSource(stream);
-        source.connect(analyser);
-        visualizeMic();
-    } catch (err) {
-        showToast("카메라/마이크 활성화에 실패했습니다: " + err.message);
-    }
-}
-
-// 3. 면접 시작 함수 ("변신" 로직)
-function startInterview() {
-    // UI "변신"
-    checkUI.classList.add('hidden');
-    micCheckUI.classList.add('hidden');
-    startInterviewBtn.classList.add('hidden');
-    interviewUI.classList.remove('hidden');
-    submitAnswerBtn.classList.remove('hidden');
-
-    questionTextElement.textContent = "자기소개를 1분 동안 해주세요.";
-    
-    // 이미 켜져있는 안정적인 스트림으로 녹음 및 타이머 시작
-    startRecording(localStream);
-    startTimer(60);
-}
-
-// 4. 마이크 시각화 함수
 function visualizeMic() {
     const bufferLength = analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
     const draw = () => {
         requestAnimationFrame(draw);
         analyser.getByteTimeDomainData(dataArray);
-        canvasCtx.fillStyle = '#ffffff'; // 배경색을 흰색으로 변경
+        canvasCtx.fillStyle = '#f4f1e9';
         canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
         canvasCtx.lineWidth = 2;
         canvasCtx.strokeStyle = '#3c3c3c';
@@ -121,7 +144,6 @@ function visualizeMic() {
     draw();
 }
 
-// 5. 타이머 함수
 function startTimer(duration) {
     clearInterval(timerInterval);
     let timeLeft = duration;
@@ -135,31 +157,20 @@ function startTimer(duration) {
     }, 1000);
 }
 
-// 6. 녹음 시작 함수 (안정성 강화 최종본)
 function startRecording(stream) {
     recordedChunks = [];
-    const mimeTypes = [
-        'audio/webm;codecs=opus',
-        'audio/webm',
-    ];
-    const supportedMimeType = mimeTypes.find(type => MediaRecorder.isTypeSupported(type));
-    if (!supportedMimeType) {
-        showToast("지원되는 오디오 녹음 형식이 없습니다.");
-        return;
+    const options = { mimeType: 'audio/webm;codecs=opus' };
+    if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+        mediaRecorder = new MediaRecorder(stream);
+    } else {
+        mediaRecorder = new MediaRecorder(stream, options);
     }
-    mediaRecorder = new MediaRecorder(stream, { mimeType: supportedMimeType });
     mediaRecorder.ondataavailable = event => {
         if (event.data.size > 0) recordedChunks.push(event.data);
     };
-    try {
-        mediaRecorder.start();
-        console.log("녹음 시작됨:", supportedMimeType);
-    } catch (error) {
-        showToast(`녹음 시작 오류: ${error.message}`);
-    }
+    mediaRecorder.start();
 }
 
-// 7. 녹음 중지 Promise 함수
 function stopRecording() {
     return new Promise(resolve => {
         if (!mediaRecorder || mediaRecorder.state === "inactive") {
@@ -174,26 +185,20 @@ function stopRecording() {
     });
 }
 
-// 8. 답변 제출 함수
 async function submitAnswer() {
     clearInterval(timerInterval);
     showPage('loading-page');
     const audioBlob = await stopRecording();
     if (audioBlob.size === 0) {
         showToast('녹음된 내용이 없습니다. 다시 시도해주세요.');
-        // UI 원상 복귀
+        // 상태 초기화 후 다시 면접 시작
         showPage('interview-wrapper-page');
-        interviewUI.classList.add('hidden');
-        submitAnswerBtn.classList.add('hidden');
-        checkUI.classList.remove('hidden');
-        micCheckUI.classList.remove('hidden');
-        startInterviewBtn.classList.remove('hidden');
+        startInterview();
         return;
     }
     await sendDataToServer(audioBlob);
 }
 
-// 9. 서버로 데이터 전송 함수
 async function sendDataToServer(blob) {
     try {
         const response = await fetch('/api/evaluate', {
@@ -214,9 +219,6 @@ async function sendDataToServer(blob) {
         showPage('interview-wrapper-page');
     }
 }
-
-// --- 이벤트 리스너 설정 ---
-window.addEventListener('load', () => showPage('irb-page'));
 
 irbNextBtn.addEventListener('click', () => {
     if (irbCheckbox.checked) {
@@ -240,7 +242,3 @@ infoForm.addEventListener('submit', event => {
         showToast('모든 정보를 입력해주세요.');
     }
 });
-
-startInterviewBtn.addEventListener('click', startInterview);
-submitAnswerBtn.addEventListener('click', submitAnswer);
-

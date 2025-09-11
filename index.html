@@ -81,18 +81,20 @@
         </form>
     </div>
 
-    <!-- 3 & 4. 장치 확인 및 면접 진행 통합 페이지 -->
+    <!-- 3 & 4. 장치 확인 및 면접 진행 통합 페이지 (수정본) -->
     <div id="interview-wrapper-page" class="page hidden">
         
+        <!-- 이 부분은 면접 시작 전에만 보입니다 -->
         <div id="check-ui">
             <h2>실험 시작 안내</h2>
             <p>인터뷰를 시작하기 전, 카메라와 마이크가 잘 작동하는지 확인하겠습니다.</p>
         </div>
 
         <div class="interview-container">
-            <video id="webcam-interview" autoplay playsinline muted></video>
+            <video id="webcam-interview" width="640" height="480" autoplay playsinline muted></video>
             <div class="interview-controls">
                 
+                <!-- 이 부분은 면접 시작 후에만 보입니다 -->
                 <div id="interview-ui" class="hidden">
                     <div id="timer">01:00</div>
                     <div id="question-area">
@@ -101,12 +103,14 @@
                     </div>
                 </div>
 
+                <!-- 이 부분은 면접 시작 전에만 보입니다 -->
                 <div id="mic-check-ui">
                     <h4>마이크 체크</h4>
                     <p>마이크에 소리를 내면 아래 막대가 움직입니다.</p>
                     <canvas id="mic-visualizer" width="300" height="50"></canvas>
                 </div>
                 
+                <!-- 버튼들은 상황에 따라 JS가 보여주거나 숨깁니다 -->
                 <button id="start-interview-btn">면접 시작하기</button>
                 <button id="submit-answer-btn" class="hidden">답변 완료 및 제출</button>
             </div>
