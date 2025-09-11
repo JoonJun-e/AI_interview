@@ -106,26 +106,29 @@ function visualizeMic() {
     draw();
 }
 
-// 5. 면접 시작 함수 - 수정본
-function startInterview() {
-    // ★ FIX: 스트림을 새로고침하는 대신, 이미 켜져있는 localStream을 그대로 사용합니다.
-    if (!localStream || !localStream.active) {
-        showToast("카메라/마이크가 활성화되지 않았습니다. 페이지를 새로고침 해주세요.");
-        return;
-    }
+// 5. 면접 시작 함수 (최종 수정본)
+async function startInterview() {
     try {
         showPage('interview-page');
         questionTextElement.textContent = "자기소개를 1분 동안 해주세요.";
-        webcamInterview.srcObject = localStream; // 장치 확인에서 켠 스트림을 그대로 연결
+
+        // ★ FIX: 면접 시작 직전에 항상 새로운 스트림을 다시 받아옵니다.
+        if (localStream) {
+            localStream.getTracks().forEach(track => track.stop());
+        }
+        const newStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        localStream = newStream;
+
+        webcamInterview.srcObject = localStream;
         
-        startRecording(localStream); // 활성화된 스트림으로 녹음 시작
-        startTimer(60); // 타이머 시작
+        startRecording(localStream);
+        startTimer(60);
+
     } catch (error) {
         console.error("면접 시작 중 오류:", error);
         showToast(`면접 시작 중 오류: ${error.message}`);
     }
 }
-
 
 // 6. 타이머 함수
 function startTimer(duration) {
@@ -187,12 +190,12 @@ async function submitAnswer() {
     await sendDataToServer(audioBlob);
 }
 
-// 10. 서버로 데이터 전송 함수
+// 10. 서버로 데이터 전송 함수 (최종 수정본)
 async function sendDataToServer(blob) {
     try {
         const response = await fetch('/api/evaluate', {
             method: 'POST',
-            headers: { 'Content-Type': 'audio/webm' },
+            headers: { 'Content-Type': mediaRecorder.mimeType },
             body: blob
         });
         if (!response.ok) {
@@ -205,7 +208,8 @@ async function sendDataToServer(blob) {
     } catch (error) {
         console.error('Error submitting answer:', error);
         showToast('오류가 발생했습니다: ' + error.message);
-        startInterview();
+        // ★ FIX: 무한 루프를 막기 위해 오류 발생 시 면접 페이지로 그냥 돌아가기만 합니다.
+        showPage('interview-page');
     }
 }
 
