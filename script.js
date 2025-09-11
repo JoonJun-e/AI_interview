@@ -8,16 +8,19 @@ const interviewWrapperPage = document.getElementById('interview-wrapper-page');
 const loadingPage = document.getElementById('loading-page');
 const resultPage = document.getElementById('result-page');
 
+// 통합 페이지 내부 UI 그룹
 const checkUI = document.getElementById('check-ui');
 const micCheckUI = document.getElementById('mic-check-ui');
 const interviewUI = document.getElementById('interview-ui');
 
+// 버튼 및 폼 요소
 const irbCheckbox = document.getElementById('irb-checkbox');
 const irbNextBtn = document.getElementById('irb-next-btn');
 const infoForm = document.getElementById('info-form');
 const startInterviewBtn = document.getElementById('start-interview-btn');
 const submitAnswerBtn = document.getElementById('submit-answer-btn');
 
+// 미디어 및 시각화 요소
 const webcamInterview = document.getElementById('webcam-interview');
 const canvas = document.getElementById('mic-visualizer');
 const canvasCtx = canvas.getContext('2d');
@@ -53,7 +56,7 @@ function showToast(message) {
     }, 3000);
 }
 
-// 2. 장치 시작 및 면접 준비 함수
+// 2. 장치 시작 및 면접 준비 함수 (단순화된 최종본)
 async function setupDevicesAndInterview() {
     if (localStream) return;
     try {
@@ -72,7 +75,7 @@ async function setupDevicesAndInterview() {
     }
 }
 
-// 3. 면접 시작 함수
+// 3. 면접 시작 함수 ("변신" 로직)
 function startInterview() {
     // UI "변신"
     checkUI.classList.add('hidden');
@@ -83,8 +86,9 @@ function startInterview() {
 
     questionTextElement.textContent = "자기소개를 1분 동안 해주세요.";
     
+    // 이미 켜져있는 안정적인 스트림으로 녹음 및 타이머 시작
     startRecording(localStream);
-    startTimer(60); // 타이머 시작
+    startTimer(60);
 }
 
 // 4. 마이크 시각화 함수
@@ -94,7 +98,7 @@ function visualizeMic() {
     const draw = () => {
         requestAnimationFrame(draw);
         analyser.getByteTimeDomainData(dataArray);
-        canvasCtx.fillStyle = '#f4f1e9';
+        canvasCtx.fillStyle = '#ffffff'; // 배경색을 흰색으로 변경
         canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
         canvasCtx.lineWidth = 2;
         canvasCtx.strokeStyle = '#3c3c3c';
@@ -131,7 +135,7 @@ function startTimer(duration) {
     }, 1000);
 }
 
-// 6. 녹음 시작 함수 (NotSupportedError 해결 최종본)
+// 6. 녹음 시작 함수 (안정성 강화 최종본)
 function startRecording(stream) {
     recordedChunks = [];
     const mimeTypes = [
@@ -177,7 +181,7 @@ async function submitAnswer() {
     const audioBlob = await stopRecording();
     if (audioBlob.size === 0) {
         showToast('녹음된 내용이 없습니다. 다시 시도해주세요.');
-        // 상태 초기화 후 UI 원상 복귀
+        // UI 원상 복귀
         showPage('interview-wrapper-page');
         interviewUI.classList.add('hidden');
         submitAnswerBtn.classList.add('hidden');
@@ -207,7 +211,7 @@ async function sendDataToServer(blob) {
     } catch (error) {
         console.error('Error submitting answer:', error);
         showToast('오류가 발생했습니다: ' + error.message);
-        showPage('interview-wrapper-page'); // 오류 시 체크 화면으로 복귀
+        showPage('interview-wrapper-page');
     }
 }
 
@@ -239,3 +243,4 @@ infoForm.addEventListener('submit', event => {
 
 startInterviewBtn.addEventListener('click', startInterview);
 submitAnswerBtn.addEventListener('click', submitAnswer);
+
