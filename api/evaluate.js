@@ -1,14 +1,13 @@
 import { SpeechClient } from '@google-cloud/speech';
 import { VertexAI } from '@google-cloud/vertexai';
-import { Storage } from '@google-cloud/storage'; // GCS 라이브러리
-import { google } from 'googleapis'; // Google Sheets 라이브러리
+import { Storage } from '@google-cloud/storage';
+import { google } from 'googleapis';
 
 // --- Google Cloud 설정 ---
 const credentials = JSON.parse(process.env.GCP_CREDENTIALS);
-const GCS_BUCKET_NAME = 'ai-interview-skku-is-2025'; // 👈 1. 여기에 생성한 GCS 버킷 이름을 넣으세요.
-const GOOGLE_SHEET_ID = '1GY6cJMDakcDmgdthJiGj1N0DLWF9kgrpaTCZniJ4VMk';   // 👈 2. 여기에 구글 시트 ID를 넣으세요.
+const GCS_BUCKET_NAME = 'YOUR_BUCKET_NAME'; // 👈 여기에 생성한 GCS 버킷 이름을 넣으세요.
+const GOOGLE_SHEET_ID = 'YOUR_SHEET_ID';   // 👈 여기에 구글 시트 ID를 넣으세요.
 
-// Google 서비스 클라이언트 초기화
 const speechClient = new SpeechClient({ credentials });
 const storage = new Storage({ credentials });
 const vertexAI = new VertexAI({ project: credentials.project_id, location: 'us-central1' });
@@ -23,38 +22,41 @@ export default async function handler(req, res) {
         const transcripts = [];
         const audioUrls = [];
 
-        // 모든 답변을 순회하며 처리
-        for (const base64Audio of answers) {
-            if (!base64Audio) {
-                transcripts.push("(답변 없음)");
-                audioUrls.push("");
-                continue;
-            }
+        // 전달받은 answers 배열을 순회하며 유형에 따라 다르게 처리
+        for (const answer of answers) {
+            if (answer.type === 'video' && answer.content) {
+                // 비디오 답변 처리
+                const audioBuffer = Buffer.from(answer.content, 'base64');
+                const uniqueFileName = `${Date.now()}-${userInfo.name.replace(/\s/g, '')}.webm`;
+                const gcsUri = `gs://${GCS_BUCKET_NAME}/${uniqueFileName}`;
 
-            const audioBuffer = Buffer.from(base64Audio, 'base64');
-            const uniqueFileName = `${Date.now()}-${userInfo.name.replace(/\s/g, '')}.webm`;
-            
-            const [publicUrl, transcript] = await Promise.all([
-                uploadToGCS(audioBuffer, uniqueFileName),
-                speechToText(base64Audio)
-            ]);
-            
-            audioUrls.push(publicUrl);
-            transcripts.push(transcript || "(음성 인식 실패)");
+                const [publicUrl, transcript] = await Promise.all([
+                    uploadToGCS(audioBuffer, uniqueFileName),
+                    speechToTextLong(gcsUri)
+                ]);
+                
+                audioUrls.push(publicUrl);
+                transcripts.push(transcript || "(음성 인식 실패)");
+
+            } else if (answer.type === 'text') {
+                // 텍스트 답변 처리
+                transcripts.push(`[코딩 테스트 답변]:\n${answer.content || "(답변 없음)"}`);
+                audioUrls.push("(텍스트 답변)"); // 시트에 표시될 내용
+            }
         }
         
         console.log(`Files uploaded:`, audioUrls);
         console.log(`STT Results:`, transcripts);
 
-        const fullTranscript = transcripts.join('\n\n');
+        const fullTranscript = transcripts.join('\n\n---\n\n');
         const geminiResult = await getGeminiResult(fullTranscript);
         console.log('Gemini Result:', geminiResult);
 
         const sheetRow = [
             userInfo.irb_consented_at,
             userInfo.name,
-            userInfo.age,
-            audioUrls.join(', '), // 모든 파일 링크를 한 셀에 저장
+            userInfo.id, // 'age' 대신 'id'를 시트에 기록
+            audioUrls.join(', '),
             fullTranscript,
             geminiResult
         ];
@@ -90,18 +92,23 @@ async function appendToSheet(rowData) {
     });
 }
 
-async function speechToText(base64Audio) {
-    if (!base64Audio) return "";
-    const audio = { content: base64Audio };
-    const config = { encoding: 'WEBM_OPUS', sampleRateHertz: 48000, languageCode: 'ko-KR' };
+async function speechToTextLong(gcsUri) {
+    if (!gcsUri) return "";
+    const audio = { uri: gcsUri };
+    const config = {
+        encoding: 'WEBM_OPUS',
+        sampleRateHertz: 48000,
+        languageCode: 'ko-KR',
+    };
     const request = { audio, config };
-    const [response] = await speechClient.recognize(request);
+    const [operation] = await speechClient.longRunningRecognize(request);
+    const [response] = await operation.promise();
     return response.results.map(result => result.alternatives[0].transcript).join('\n');
 }
 
 async function getGeminiResult(text) {
     const generativeModel = vertexAI.getGenerativeModel({ model: 'gemini-1.0-pro' });
-    const prompt = `당신은 AI 면접관입니다. 지원자의 여러 질문에 대한 답변이 순서대로 주어집니다. 모든 답변을 종합적으로 고려하여 최종적으로 '합격' 또는 '불합격'으로만 판단해주세요. 판단에 대한 간단한 이유를 한 줄 덧붙일 수 있습니다.
+    const prompt = `당신은 AI 면접관입니다. 지원자의 여러 질문에 대한 답변이 순서대로 주어집니다. 모든 답변을 종합적으로 고려하여 최종적으로 '합격' 또는 '불합격'으로만 판단해주세요. 코딩 테스트 답변에 대해서는 정답 여부를 간략하게 언급하고, 나머지 인성 질문에 대한 답변을 종합하여 최종 결론을 내주세요.
     ---
     [지원자 답변 내용]
     ${text}
