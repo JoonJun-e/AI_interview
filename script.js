@@ -9,14 +9,14 @@ const userAnswers = [];
 
 // --- HTML 요소 전부 가져오기 ---
 const startPage = document.getElementById('start-page');
-const irbPage = document.getElementById('irb-page');
+const guidePage = document.getElementById('guide-page');
 const interviewWrapperPage = document.getElementById('interview-wrapper-page');
 const loadingPage = document.getElementById('loading-page');
 const resultPage = document.getElementById('result-page');
 
 const startForm = document.getElementById('start-form');
-const irbCheckbox = document.getElementById('irb-checkbox');
-const irbNextBtn = document.getElementById('irb-next-btn');
+const guideNextBtn = document.getElementById('guide-next-btn');
+const conditionSelect = document.getElementById('condition-select');
 
 const checkUI = document.getElementById('check-ui');
 const micCheckUI = document.getElementById('mic-check-ui');
@@ -243,7 +243,7 @@ async function submitAnswer() {
         const elapsedTime = (Date.now() - answerStartTime) / 1000;
         if (!isTimeout && elapsedTime < 30) {
             showToast("최소 30초 이상 답변해야 합니다.");
-            startTimer(60 - Math.floor(elapsedTime));
+            startTimer(30 - Math.floor(elapsedTime));
             return;
         }
         const audioBlob = await stopRecording();
@@ -255,29 +255,25 @@ async function submitAnswer() {
 
 async function finishInterview() {
     showPage('loading-page');
-    const answersPayload = await Promise.all(
-        userAnswers.map(async (answer) => {
-            if (answer.type === 'video') {
-                const base64Content = await blobToBase64(answer.content);
-                return { type: 'video', content: base64Content };
-            }
-            return answer;
-        })
-    );
-    sendDataToServer(answersPayload);
+    const choice = userData.testCondition;
+    let resultMessage = "";
+    switch (choice) {
+        case '1': resultMessage = "코딩 테스트 결과: 합격입니다."; break;
+        case '2': resultMessage = "코딩 테스트 결과: 아쉽지만 불합격입니다."; break;
+        case '3': resultMessage = "AI 면접 평가 결과: 합격입니다. 좋은 결과 기대합니다."; break;
+        case '4': resultMessage = "AI 면접 평가 결과: 아쉽지만 다음 기회에 뵙겠습니다."; break;
+        default: resultMessage = "오류: 테스트 조건을 선택하지 않았습니다.";
+    }
+    setTimeout(() => { showFinalResult(resultMessage); }, 1000);
 }
 
-function blobToBase64(blob) {
-    return new Promise((resolve, reject) => {
-        if (blob.size === 0) { resolve(""); return; }
-        const reader = new FileReader();
-        reader.readAsDataURL(blob);
-        reader.onloadend = () => resolve(reader.result.split(',')[1]);
-        reader.onerror = error => reject(error);
-    });
+function showFinalResult(message) {
+    showPage('result-page');
+    resultTextElement.textContent = message;
 }
 
 async function sendDataToServer(answersPayload) {
+    // 현재 이 함수는 finishInterview에서 호출되지 않으므로 실행되지 않습니다.
     const payload = { userInfo: userData, answers: answersPayload };
     try {
         const response = await fetch('/api/evaluate', {
@@ -306,24 +302,20 @@ startForm.addEventListener('submit', e => {
     e.preventDefault();
     const name = document.getElementById('name').value;
     const userId = document.getElementById('user-id').value;
+    const testCondition = conditionSelect.value;
     if (name && userId) {
         userData.name = name;
         userData.id = userId;
-        showPage('irb-page');
+        userData.testCondition = testCondition;
+        showPage('guide-page');
     } else {
         showToast('모든 정보를 입력해주세요.');
     }
 });
 
-irbNextBtn.addEventListener('click', () => {
-    if (irbCheckbox.checked) {
-        userData.irb_consented = true;
-        userData.irb_consented_at = new Date().toISOString();
-        showPage('interview-wrapper-page');
-        setupDevices();
-    } else {
-        showToast('연구 참여에 동의해야 합니다.');
-    }
+guideNextBtn.addEventListener('click', () => {
+    showPage('interview-wrapper-page');
+    setupDevices();
 });
 
 startInterviewBtn.addEventListener('click', startNextQuestion);

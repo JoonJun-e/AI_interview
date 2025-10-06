@@ -11,35 +11,47 @@
         video { border-radius: 8px; transform: scaleX(-1); background-color: #000; width: 100%; max-width: 700px; height: auto; transition: all 0.3s ease-in-out; margin-bottom: 20px; }
         button { font-size: 16px; padding: 10px 20px; margin-top: 20px; border: 1px solid #3c3c3c; border-radius: 5px; cursor: pointer; background-color: #3c3c3c; color: #f4f1e9; transition: background-color 0.3s; }
         button:disabled { background-color: #95a5a6; cursor: not-allowed; }
-        button:hover:not(:disabled) { background-color: #555; }
-
+        
         /* --- 새로운 시작 페이지 스타일 --- */
         .start-page-container { width: 100%; max-width: 700px; margin: 0 auto; padding: 40px; background-color: #fff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         .header-logos { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
         .header-logos img { max-height: 40px; }
         .main-title { font-size: 24px; font-weight: bold; margin-bottom: 50px; }
         .start-form .form-row { display: flex; align-items: center; margin-bottom: 20px; }
-        .start-form label { width: 80px; font-size: 18px; font-weight: bold; text-align: left; }
-        .start-form input { flex-grow: 1; padding: 15px 20px; border: 1px solid #ccc; border-radius: 30px; font-size: 16px; }
+        .start-form label { width: 120px; font-size: 18px; font-weight: bold; text-align: left; }
+        .start-form input, .start-form select { flex-grow: 1; padding: 15px 20px; border: 1px solid #ccc; border-radius: 30px; font-size: 16px; background-color: #fff; }
         .start-form button { background-color: #fff; color: #3c3c3c; padding: 12px 40px; margin-top: 30px; }
 
         /* --- 코딩 테스트용 레이아웃 스타일 --- */
         .coding-test-layout { display: flex; gap: 20px; text-align: left; }
-        .problem-description { flex: 0 0 45%; background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); height: 480px; overflow-y: auto; }
+        .problem-description { flex: 0 0 45%; background-color: #ffffff; padding: 20px; border-radius: 8px; border: 1px solid #e0e0e0; box-shadow: none; height: 480px; overflow-y: auto; }
         .editor-area { flex: 1; display: flex; flex-direction: column; }
         #text-answer-area { width: 100%; flex-grow: 1; font-family: monospace; font-size: 14px; padding: 15px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; }
-        
-        /* --- 작아진 비디오 스타일 --- */
         .video-small { position: fixed; bottom: 40px; right: 40px; width: 240px !important; height: 180px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 100; object-fit: cover; }
 
-        /* --- 기존 페이지 스타일 --- */
-        .consent-box { text-align: left; padding: 20px; border: 1px solid #ccc; max-height: 200px; overflow-y: auto; margin: 20px 0; background-color: #fff; }
+        /* --- 비디오 면접 레이아웃 스타일 --- */
         .video-interview-layout { max-width: 700px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden; position: relative; }
         .interview-controls { padding: 25px; text-align: center; }
         #timer { font-size: 28px; font-weight: bold; color: #e74c3c; margin-top: 15px; }
-        #preparation-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.8); color: white; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; padding: 20px; }
+        #preparation-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.8); color: white; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; padding: 20px; text-align: center; }
         #preparation-question { font-size: 1.2em; margin-bottom: 20px; font-weight: bold; }
-        #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background-color: #e74c3c; color: white; padding: 16px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 1000; opacity: 0; transition: opacity 0.5s, bottom 0.5s; }
+        .language-toggle { position: absolute; top: 20px; right: 20px; z-index: 11; background-color: rgba(0,0,0,0.3); border-radius: 20px; padding: 5px; display: flex; }
+        .language-toggle button { font-size: 12px; padding: 5px 10px; margin: 0; border: none; background-color: transparent; color: white; cursor: pointer; border-radius: 15px; }
+        .language-toggle button.active { background-color: rgba(255,255,255,0.9); color: black; }
+        
+        /* --- 마이크 체크 UI 스타일 --- */
+        #mic-check-ui {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        #mic-check-ui h4, #mic-check-ui p { margin: 0; }
+
+        /* --- 기타 페이지 스타일 --- */
+        .text-box { max-width: 700px; margin: 0 auto; text-align: left; background: white; padding: 30px; border-radius: 8px; }
+        #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background-color: #e74c3c; color: white; padding: 16px; border-radius: 8px; z-index: 1000; opacity: 0; transition: opacity 0.5s, bottom 0.5s; }
         #toast.show { opacity: 1; bottom: 50px; }
     </style>
 </head>
@@ -61,18 +73,31 @@
                     <label for="user-id">ID</label>
                     <input type="text" id="user-id" placeholder="메일로 안내받은 ID 입력" required>
                 </div>
+                <div class="form-row">
+                    <label for="condition-select">테스트 조건</label>
+                    <select id="condition-select">
+                        <option value="1">1: 하드 스킬 (코딩) - 합격</option>
+                        <option value="2">2: 하드 스킬 (코딩) - 불합격</option>
+                        <option value="3">3: 소프트 스킬 (일반) - 합격</option>
+                        <option value="4">4: 소프트 스킬 (일반) - 불합격</option>
+                    </select>
+                </div>
                 <button type="submit">실험 참여</button>
             </form>
         </div>
     </div>
 
-    <div id="irb-page" class="page hidden">
-        <h2>실험 참가 동의서 (IRB)</h2>
-        <div class="consent-box">
-            <p>본 연구는 AI 면접 경험에 대한 연구입니다. 귀하의 답변 음성은 녹음되어 텍스트로 변환 후 분석에 사용되며, 개인 식별 정보는 암호화 처리됩니다. 연구 참여에 동의하십니까?</p>
+    <div id="guide-page" class="page hidden">
+        <h2>실험 안내</h2>
+        <div class="text-box">
+            <p>안녕하세요, 반갑습니다!</p>
+            <p>여러분은 지금부터 Aivora에서 직접 제작한 AI 면접 시스템을 체험하시게 됩니다.</p>
+            <p>이 시스템은 실제 채용 과정에서 활용될 수 있도록 저희 Aivora가 직접 설계한 면접 프로그램입니다. 질문 제시부터 답변 평가까지 회사가 정한 기준을 바탕으로 AI 면접관이 모든 과정을 진행합니다. 즉, 여러분의 답변은 AI 면접관이 직접 분석하고 평가하게 됩니다.</p>
+            <p>이번 실험에서는 실제 면접과 유사한 환경 속에서 여러분이 지원자의 입장이 되어 질문에 응답하시게 됩니다.</p>
+            <p>모든 응답에는 준비 시간이 주어지며, 준비 시간이 끝나면 자동으로 녹음이 시작됩니다.</p>
+            <p>답변 시간은 1분이며, 최소 30초 이상 말씀해주셔야 다음 화면으로 넘어갈 수 있습니다.</p>
         </div>
-        <label><input type="checkbox" id="irb-checkbox"> 위 내용에 모두 동의합니다.</label><br>
-        <button id="irb-next-btn">다음</button>
+        <button id="guide-next-btn">이해했으며, 다음으로</button>
     </div>
 
     <div id="interview-wrapper-page" class="page hidden">
@@ -85,12 +110,15 @@
 
         <div id="interview-ui" class="hidden">
             <div id="video-interview-container" class="video-interview-layout">
+                <div class="language-toggle">
+                    <button class="active">한국어</button>
+                    <button>English</button>
+                </div>
                 <div id="preparation-overlay" class="hidden">
                     <p id="preparation-question"></p>
                     <h2 id="preparation-timer">10</h2>
                     <p>초 후 녹화가 시작됩니다.</p>
                 </div>
-                
                 <div class="interview-controls">
                     <div id="question-area-video">
                         <h3 id="question-title-video"></h3>
