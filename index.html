@@ -23,6 +23,16 @@
         /* --- 안내 페이지 --- */
         .text-box { text-align: left; line-height: 1.8; }
 
+        /* --- 장치 확인 페이지 정렬 --- */
+        #mic-check-ui {
+            display: flex;
+            flex-direction: column; /* 세로 정렬 */
+            align-items: center;   /* 가운데 정렬 */
+            gap: 15px;             /* 요소 간 간격 */
+            margin-top: 20px;
+        }
+        #mic-check-ui h4, #mic-check-ui p { margin: 0; }
+
         /* --- 답변 준비 페이지 --- */
         #prep-page .content-box { background-color: #e9e9e9; padding: 60px 40px; min-height: 400px; display: flex; flex-direction: column; justify-content: center; }
         #prep-question { font-size: 1.5em; line-height: 1.6; flex-grow: 1; display: flex; align-items: center; justify-content: center; }
@@ -31,7 +41,7 @@
 
         /* --- 면접 진행 페이지 --- */
         #interview-page .content-box { padding: 0; overflow: hidden; position: relative; }
-        #interview-timer-display { background-color: #e0e0e0; padding: 8px; font-size: 1.2em; font-weight: bold; width: 100px; margin: 0 auto; border-radius: 5px; position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 10; }
+        #interview-timer-display { background-color: #e0e0e0; padding: 8px; font-size: 1.2em; font-weight: bold; width: 100px; margin: 20px auto; border-radius: 5px; }
         #interview-question-bar { background-color: #f0f0f0; padding: 20px; font-size: 1.1em; line-height: 1.5; }
         #webcam-interview { width: 100%; height: auto; }
 
@@ -55,7 +65,7 @@
     <div id="start-page" class="page">
         <div class="content-box start-page-container">
             <div class="header-logos">
-                <img src="images/HAI_Lab_로고.webp" alt="Human-AI Interaction Laboratory">
+                <img src="images/hailab_logo.webp" alt="Human-AI Interaction Laboratory">
                 <img src="https://www.skku.edu/_res/skku/img/skku_s.png" alt="Sungkyunkwan University">
             </div>
             <form id="start-form" class="start-form">
@@ -97,10 +107,12 @@
              <h2>실험 시작 안내</h2>
             <p>인터뷰를 시작하기 전, 카메라와 마이크가 잘 작동하는지 확인하겠습니다.</p>
             <video id="webcam-check" autoplay playsinline muted style="height: 360px; width: 100%; max-width: 640px;"></video>
-            <h4>마이크 체크</h4>
-            <p>마이크에 소리를 내면 아래 막대가 움직입니다.</p>
-            <canvas id="mic-visualizer" width="300" height="50" style="border: 1px solid #ccc;"></canvas>
-            <button id="start-interview-btn">면접 시작하기</button>
+            <div id="mic-check-ui">
+                <h4>마이크 체크</h4>
+                <p>마이크에 소리를 내면 아래 막대가 움직입니다.</p>
+                <canvas id="mic-visualizer" width="300" height="50" style="border: 1px solid #ccc;"></canvas>
+                <button id="start-interview-btn">면접 시작하기</button>
+            </div>
         </div>
     </div>
 

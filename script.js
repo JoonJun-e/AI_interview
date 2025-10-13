@@ -1,217 +1,117 @@
-// --- 사용자 데이터 및 면접 질문 관리 ---
+// ======================= [script.js 코드 시작] =======================
+// --- 상태 관리 ---
 const userData = {};
-const questions = [
-    { type: 'text', text: '주어진 배열에서 중복된 숫자를 제거하는 함수를 작성하세요. (예: [1, 2, 2, 3] -> [1, 2, 3])' },
-    { type: 'video', text: '우리 회사에 지원하게 된 동기는 무엇인가요?' },
-    { type: 'video', text: '입사 후 만들고 싶은 성과에 대해 구체적으로 말씀해주세요.' }
-];
 const userAnswers = [];
+let localStream, audioContext, analyser, mediaRecorder;
+let recordedChunks = [];
+let timerInterval, prepTimerInterval;
+let currentQuestionIndex = 0;
 
-// --- HTML 요소 전부 가져오기 ---
-const startPage = document.getElementById('start-page');
-const guidePage = document.getElementById('guide-page');
-const interviewWrapperPage = document.getElementById('interview-wrapper-page');
-const loadingPage = document.getElementById('loading-page');
-const resultPage = document.getElementById('result-page');
-const savingPage = document.getElementById('saving-page');
+// --- ✅ [수정] 새로운 질문 목록과 시간표 적용 ---
+const questions = [
+    { text: '1분동안 자기 소개를 해주세요.', prepTime: 20, answerTime: 60 },
+    { text: '당신은 팀 프로젝트에서 중요한 결정을 내려야 하는 상황입니다. 프로젝트 마감 기한은 다가오는데, 두 명의 동료가 서로 다른 의견을 내고 있습니다. 한 명은 새로운 방식을 시도해야 한다고 주장하고, 다른 한 명은 검증된 기존 방식을 고수해야 한다고 합니다. 이 상황에서 팀원들을 어떻게 설득하고, 프로젝트를 어떤 방향으로 이끌어가시겠습니까? 구체적으로 어떤 말을 할지 설명해주세요.', prepTime: 25, answerTime: 90 },
+    { text: '프로젝트에서 당신이 내린 결정이 실패했습니다. 반대하던 일부 팀원들이 당신을 비난하고 프로젝트에 지속적으로 참여하기를 거부합니다. 이 상황에서 팀원들에게 어떻게 설명하고, 책임을 지시겠습니까? 당신을 비난하고 참여를 거부하는 팀원들을 어떻게 설득하여 참여를 유도하시겠습니까? 구체적으로 어떤 말을 할지 설명해주세요.', prepTime: 25, answerTime: 90 },
+    { text: '한 팀원이 ‘항상 일이 불공평하게 배분된다’고 회의에서 불만을 강하게 드러냈습니다. 다른 팀원들은 그 상황을 불편해하였고, 분위기는 냉각되었습니다. 당신은 이 상황에서 회의를 어떻게 수습하고, 불만을 제기한 동료와 다른 팀원들의 관계를 어떻게 회복시키겠습니까? 구체적으로 말씀해주세요.', prepTime: 25, answerTime: 90 },
+    { text: '언뜻 사태가 마무리된 듯 해 보였으나, 회의 이후에도 팀원들 사이에 감정의 골이 남아있습니다. 팀 전체의 사기를 유지하면서도 불만을 제기한 팀원의 목소리를 존중하려면 어떻게 하면 좋을까요? 갈등이 다시 표면화되지 않도록 어떤 대화나 행동을 통해 관계 회복을 이끌어내실지 구체적으로 말씀해주세요.', prepTime: 25, answerTime: 90 },
+    { text: '마케팅 부서에서 사실을 과장한 광고 문구를 쓰자는 제안이 나왔습니다. 이 방식은 매출 증대 효과가 있을 수 있지만, 고객 신뢰를 잃을 위험도 있습니다. 이 회의에서 당신은 마케팅 부서 직원들을 어떻게 설득하겠습니까? 어떻게 말을 할지 구체적으로 설명해주세요.', prepTime: 25, answerTime: 90 },
+    { text: '마케팅 부서 직원들은 ‘다른 회사에서도 다들 그렇게 하니까 조금 과장해도 괜찮다’고 하며 여전히 과장된 문구 사용을 주장합니다. 당신은 회사의 단기 성과와 고객 신뢰 사이에서 균형을 어떻게 잡으시겠습니까? 당신이라면 어떻게 말을 하고, 행동할 것인지 구체적으로 설명해주세요.', prepTime: 25, answerTime: 90 },
+];
+
+// --- HTML 요소 캐싱 ---
+const pages = {
+    start: document.getElementById('start-page'),
+    guide: document.getElementById('guide-page'),
+    deviceCheck: document.getElementById('device-check-page'),
+    prep: document.getElementById('prep-page'),
+    interview: document.getElementById('interview-page'),
+    saving: document.getElementById('saving-page'),
+    resultPass: document.getElementById('result-page-pass'),
+    resultFail: document.getElementById('result-page-fail'),
+};
 
 const startForm = document.getElementById('start-form');
 const guideNextBtn = document.getElementById('guide-next-btn');
-const conditionSelect = document.getElementById('condition-select');
-
-const checkUI = document.getElementById('check-ui');
-const micCheckUI = document.getElementById('mic-check-ui');
-const interviewUI = document.getElementById('interview-ui');
 const startInterviewBtn = document.getElementById('start-interview-btn');
 const submitAnswerBtn = document.getElementById('submit-answer-btn');
+const conditionSelect = document.getElementById('condition-select');
+
+const webcamCheck = document.getElementById('webcam-check');
 const webcamInterview = document.getElementById('webcam-interview');
-const canvas = document.getElementById('mic-visualizer');
-const canvasCtx = canvas.getContext('2d');
-const timerElement = document.getElementById('timer');
-const resultTextElement = document.getElementById('result-text');
-const preparationOverlay = document.getElementById('preparation-overlay');
-const toast = document.getElementById('toast');
-const textAnswerArea = document.getElementById('text-answer-area');
-const videoInterviewContainer = document.getElementById('video-interview-container');
-const codingTestContainer = document.getElementById('coding-test-container');
-const commonControls = document.getElementById('common-controls');
+const micVisualizer = document.getElementById('mic-visualizer');
+const prepQuestion = document.getElementById('prep-question');
+const prepTimerText = document.getElementById('prep-timer-text').querySelector('span');
+const interviewTimerDisplay = document.getElementById('interview-timer-display');
+const interviewQuestionBar = document.getElementById('interview-question-bar');
 
-const preparationQuestion = document.getElementById('preparation-question');
-const questionTitlePrep = document.getElementById('question-title-prep');
-const preparationTimerDisplay = document.getElementById('preparation-timer-display');
-const timerProgress = document.getElementById('timer-progress');
-const answerNowBtn = document.getElementById('answer-now-btn');
-
-// --- 상태 변수 ---
-let localStream, audioContext, analyser, mediaRecorder;
-let recordedChunks = [];
-let timerInterval, prepAnimationId;
-let currentQuestionIndex = 0;
-let answerStartTime;
-
-// --- 핵심 함수들 ---
+// --- 페이지 전환 ---
 function showPage(pageId) {
-    document.querySelectorAll('.page').forEach(page => page.classList.add('hidden'));
-    document.getElementById(pageId).classList.remove('hidden');
+    Object.values(pages).forEach(page => page.classList.add('hidden'));
+    pages[pageId].classList.remove('hidden');
 }
 
-function showToast(message) {
-    toast.textContent = message;
-    toast.classList.remove('hidden');
-    toast.classList.add('show');
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.classList.add('hidden'), 500);
-    }, 3000);
-}
-
-async function setupDevices() {
-    if (localStream) return;
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        localStream = stream;
-        webcamInterview.srcObject = stream;
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        if (audioContext.state === 'suspended') await audioContext.resume();
-        analyser = audioContext.createAnalyser();
-        const source = audioContext.createMediaStreamSource(stream);
-        source.connect(analyser);
-        visualizeMic();
-    } catch (err) {
-        showToast("카메라/마이크 활성화 실패: " + err.message);
-    }
-}
-
-function startNextQuestion() {
-    if (currentQuestionIndex >= questions.length) {
-        finishInterview();
-        return;
-    }
-    const currentQuestion = questions[currentQuestionIndex];
-    checkUI.classList.add('hidden');
-    micCheckUI.classList.add('hidden');
-    interviewUI.classList.remove('hidden');
-    commonControls.classList.remove('hidden');
-    if (currentQuestion.type === 'text') {
-        videoInterviewContainer.classList.add('hidden');
-        codingTestContainer.classList.remove('hidden');
-        webcamInterview.classList.add('video-small');
-        document.body.append(webcamInterview);
-        codingTestContainer.querySelector('#question-title-coding').textContent = `AI 질문 ${currentQuestionIndex + 1}/${questions.length}`;
-        codingTestContainer.querySelector('#question-text-coding').textContent = currentQuestion.text;
-        submitAnswerBtn.disabled = false;
-        textAnswerArea.value = '';
-    } else {
-        videoInterviewContainer.classList.remove('hidden');
-        codingTestContainer.classList.add('hidden');
-        webcamInterview.classList.remove('video-small');
-        videoInterviewContainer.insertBefore(webcamInterview, preparationOverlay);
-        questionTitlePrep.textContent = `AI 질문 ${currentQuestionIndex + 1}/${questions.length}`;
-        preparationQuestion.textContent = currentQuestion.text;
-        videoInterviewContainer.querySelector('#question-title-video').textContent = `AI 질문 ${currentQuestionIndex + 1}/${questions.length}`;
-        videoInterviewContainer.querySelector('#question-text-video').textContent = currentQuestion.text;
-        submitAnswerBtn.disabled = true;
-        runPreparationTimerWithRAF();
-    }
-}
-
-function runPreparationTimerWithRAF() {
-    preparationOverlay.classList.remove('hidden');
-    let startTime = null;
-    const duration = 10000;
-    const radius = timerProgress.r.baseVal.value;
-    const circumference = 2 * Math.PI * radius;
-    timerProgress.style.strokeDasharray = circumference;
-    timerProgress.style.strokeDashoffset = 0;
-    function animationFrame(timestamp) {
-        if (!startTime) startTime = timestamp;
-        const elapsed = timestamp - startTime;
-        const timeLeft = Math.ceil((duration - elapsed) / 1000);
-        preparationTimerDisplay.textContent = timeLeft > 0 ? timeLeft : 0;
-        const progress = elapsed / duration;
-        const offset = circumference * progress;
-        timerProgress.style.strokeDashoffset = offset;
-        if (elapsed < duration) {
-            prepAnimationId = requestAnimationFrame(animationFrame);
-        } else {
-            skipPreparation();
-        }
-    }
-    prepAnimationId = requestAnimationFrame(animationFrame);
-}
-
-function skipPreparation() {
-    cancelAnimationFrame(prepAnimationId);
-    preparationOverlay.classList.add('hidden');
-    startRecordingAndTimer();
-}
-
-function startRecordingAndTimer() {
-    const isRecordingStarted = startRecording(localStream);
-    if (isRecordingStarted) {
-        startTimer(30);
-        answerStartTime = Date.now();
-        submitAnswerBtn.disabled = true;
-    } else {
-        showToast("오디오 녹음을 시작할 수 없습니다. 잠시 후 다시 시도해주세요.");
-    }
-}
-
+// --- 마이크 시각화 ---
 function visualizeMic() {
+    if (!localStream || !audioContext) return;
+    analyser = audioContext.createAnalyser();
+    const source = audioContext.createMediaStreamSource(localStream);
+    source.connect(analyser);
+
+    const canvasCtx = micVisualizer.getContext('2d');
     const bufferLength = analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
-    const draw = () => {
+
+    function draw() {
         requestAnimationFrame(draw);
         analyser.getByteTimeDomainData(dataArray);
-        canvasCtx.fillStyle = '#f4f1e9';
-        canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+        canvasCtx.fillStyle = '#f0f0f0';
+        canvasCtx.fillRect(0, 0, micVisualizer.width, micVisualizer.height);
         canvasCtx.lineWidth = 2;
-        canvasCtx.strokeStyle = '#3c3c3c';
+        canvasCtx.strokeStyle = '#333';
         canvasCtx.beginPath();
-        const sliceWidth = canvas.width * 1.0 / bufferLength;
+        const sliceWidth = micVisualizer.width * 1.0 / bufferLength;
         let x = 0;
         for (let i = 0; i < bufferLength; i++) {
             const v = dataArray[i] / 128.0;
-            const y = v * canvas.height / 2;
+            const y = v * micVisualizer.height / 2;
             if (i === 0) canvasCtx.moveTo(x, y);
             else canvasCtx.lineTo(x, y);
             x += sliceWidth;
         }
-        canvasCtx.lineTo(canvas.width, canvas.height / 2);
+        canvasCtx.lineTo(micVisualizer.width, micVisualizer.height / 2);
         canvasCtx.stroke();
     };
     draw();
 }
 
-function startTimer(duration) {
-    clearInterval(timerInterval);
-    let timeLeft = duration;
-    timerInterval = setInterval(() => {
-        const minutes = String(Math.floor(timeLeft / 60)).padStart(2, '0');
-        const seconds = String(timeLeft % 60).padStart(2, '0');
-        timerElement.textContent = `${minutes}:${seconds}`;
-        const elapsedTime = (Date.now() - answerStartTime) / 1000;
-        if (elapsedTime >= 30) submitAnswerBtn.disabled = false;
-        if (--timeLeft < 0) submitAnswer();
-    }, 1000);
+// --- 장치 설정 ---
+async function setupDevices() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        localStream = stream;
+        webcamCheck.srcObject = stream;
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioContext.state === 'suspended') await audioContext.resume();
+        visualizeMic();
+    } catch (err) {
+        alert("카메라/마이크 활성화에 실패했습니다: " + err.message);
+    }
 }
 
+// --- 녹음 로직 ---
 function startRecording(stream) {
-    if (!stream || !stream.active) { showToast("미디어 스트림이 활성화되지 않았습니다."); return false; }
+    if (!stream || !stream.active) return false;
     const audioTracks = stream.getAudioTracks();
-    if (audioTracks.length === 0) { showToast("오디오 트랙을 찾을 수 없습니다."); return false; }
+    if (audioTracks.length === 0) return false;
     const audioStream = new MediaStream(audioTracks);
     recordedChunks = [];
-    const mimeTypes = ['audio/webm;codecs=opus', 'audio/webm'];
-    const supportedMimeType = mimeTypes.find(type => MediaRecorder.isTypeSupported(type));
-    if (!supportedMimeType) { showToast("지원되는 오디오 녹음 형식이 없습니다."); return false; }
     try {
-        mediaRecorder = new MediaRecorder(audioStream, { mimeType: supportedMimeType });
+        mediaRecorder = new MediaRecorder(audioStream);
         mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
         mediaRecorder.start();
         return true;
     } catch (error) {
-        showToast(`녹음 시작 오류: ${error.message}`);
+        console.error("녹음 시작 오류:", error);
         return false;
     }
 }
@@ -224,75 +124,95 @@ function stopRecording() {
     });
 }
 
-// ✅ [수정] '답변 저장 중' 화면을 제거하고 즉시 다음 질문으로 넘어가도록 수정
-async function submitAnswer() {
-    const currentQuestion = questions[currentQuestionIndex];
-    let answerData;
-    if (currentQuestion.type === 'text') {
-        const textAnswer = textAnswerArea.value;
-        answerData = { type: 'text', content: textAnswer };
-    } else {
-        clearInterval(timerInterval);
-        const isTimeout = timerElement.textContent === '00:00';
-        const elapsedTime = (Date.now() - answerStartTime) / 1000;
-        if (!isTimeout && elapsedTime < 30) {
-            showToast("최소 30초 이상 답변해야 합니다.");
-            startTimer(30 - Math.floor(elapsedTime));
-            return;
-        }
-        const audioBlob = await stopRecording();
-        answerData = { type: 'video', content: audioBlob };
-    }
-    userAnswers.push(answerData);
-
-    if (currentQuestionIndex >= questions.length - 1) {
+// --- 면접 흐름 제어 ---
+function startNextQuestion() {
+    if (currentQuestionIndex >= questions.length) {
         finishInterview();
-    } else {
-        // 'saving-page'와 setTimeout을 제거하고 바로 다음 단계 실행
+        return;
+    }
+    const question = questions[currentQuestionIndex];
+    showPage('prep');
+    
+    prepQuestion.textContent = question.text;
+    let prepTimeLeft = question.prepTime;
+    prepTimerText.textContent = `${prepTimeLeft}초 뒤`;
+
+    clearInterval(prepTimerInterval);
+    prepTimerInterval = setInterval(() => {
+        prepTimeLeft--;
+        prepTimerText.textContent = `${prepTimeLeft}초 뒤`;
+        if (prepTimeLeft <= 0) {
+            clearInterval(prepTimerInterval);
+            startAnswer();
+        }
+    }, 1000);
+}
+
+function startAnswer() {
+    const question = questions[currentQuestionIndex];
+    showPage('interview');
+    
+    interviewQuestionBar.textContent = question.text;
+    webcamInterview.srcObject = localStream;
+    if (!startRecording(localStream)) {
+        alert("녹음을 시작할 수 없습니다.");
+        return;
+    }
+
+    let answerTimeLeft = question.answerTime;
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+        const minutes = String(Math.floor(answerTimeLeft / 60)).padStart(2, '0');
+        const seconds = String(answerTimeLeft % 60).padStart(2, '0');
+        interviewTimerDisplay.textContent = `${minutes}:${seconds}`;
+        answerTimeLeft--;
+        if (answerTimeLeft < 0) {
+            submitAnswer();
+        }
+    }, 1000);
+}
+
+async function submitAnswer() {
+    clearInterval(timerInterval);
+    const audioBlob = await stopRecording();
+    userAnswers.push(audioBlob);
+
+    showPage('saving');
+    // 저장 시간. 10초로 변경하려면 10000으로 수정
+    setTimeout(() => {
         currentQuestionIndex++;
         startNextQuestion();
-    }
+    }, 2500);
 }
 
-async function finishInterview() {
-    showPage('loading-page');
-    const choice = userData.testCondition;
-    let resultMessage = "";
-    switch (choice) {
-        case '1': resultMessage = "코딩 테스트 결과: 합격입니다."; break;
-        case '2': resultMessage = "코딩 테스트 결과: 아쉽지만 불합격입니다."; break;
-        case '3': resultMessage = "AI 면접 평가 결과: 합격입니다. 좋은 결과 기대합니다."; break;
-        case '4': resultMessage = "AI 면접 평가 결과: 아쉽지만 다음 기회에 뵙겠습니다."; break;
-        default: resultMessage = "오류: 테스트 조건을 선택하지 않았습니다.";
+function finishInterview() {
+    const condition = userData.testCondition;
+    if (condition === 'pass') {
+        showPage('resultPass');
+    } else {
+        showPage('resultFail');
     }
-    setTimeout(() => { showFinalResult(resultMessage); }, 1000);
-}
-
-function showFinalResult(message) {
-    showPage('result-page');
-    resultTextElement.textContent = message;
 }
 
 // --- 이벤트 리스너 설정 ---
-window.addEventListener('load', () => showPage('start-page'));
+window.addEventListener('load', () => {
+    showPage('start');
+});
+
 startForm.addEventListener('submit', e => {
     e.preventDefault();
-    const name = document.getElementById('name').value;
-    const userId = document.getElementById('user-id').value;
-    const testCondition = conditionSelect.value;
-    if (name && userId) {
-        userData.name = name;
-        userData.id = userId;
-        userData.testCondition = testCondition;
-        showPage('guide-page');
-    } else {
-        showToast('모든 정보를 입력해주세요.');
-    }
+    userData.name = document.getElementById('name').value;
+    userData.id = document.getElementById('user-id').value;
+    userData.testCondition = conditionSelect.value;
+    showPage('guide');
 });
+
 guideNextBtn.addEventListener('click', () => {
-    showPage('interview-wrapper-page');
-    setupDevices();
+    showPage('deviceCheck');
+    setTimeout(setupDevices, 100);
 });
+
 startInterviewBtn.addEventListener('click', startNextQuestion);
+
 submitAnswerBtn.addEventListener('click', submitAnswer);
-answerNowBtn.addEventListener('click', skipPreparation);
+// ======================= [script.js 코드 끝] =======================
