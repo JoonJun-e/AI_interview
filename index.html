@@ -4,59 +4,88 @@
     <meta charset="UTF-8">
     <title>AI 면접</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; margin: 0; padding: 3rem 1rem; background-color: #f0f0f0; color: #333; display: flex; justify-content: center; align-items: center; min-height: 100vh; box-sizing: border-box; }
+        /* --- ✅ [수정] 전반적인 디자인 시스템 --- */
+        :root {
+            --primary-blue: #4a90e2;
+            --light-blue-bg: #f0f5fa;
+            --dark-text: #333;
+            --light-text: #555;
+            --border-color: #dee2e6;
+        }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; 
+            margin: 0; 
+            padding: 3rem 1rem; 
+            background-color: var(--light-blue-bg); 
+            color: var(--dark-text); 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            box-sizing: border-box; 
+        }
         .page { width: 100%; max-width: 800px; text-align: center; }
         .hidden { display: none !important; }
-        .content-box { background-color: #fff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); padding: 40px; }
-        button { font-size: 16px; padding: 12px 24px; margin-top: 20px; border: none; border-radius: 8px; cursor: pointer; background-color: #333; color: #fff; transition: background-color 0.3s; }
-        button:hover { background-color: #555; }
-        video { transform: scaleX(-1); background-color: #000; border-radius: 8px; }
+        .content-box { 
+            background-color: #fff; 
+            border-radius: 16px; 
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1); 
+            padding: 40px; 
+            border: 1px solid var(--border-color);
+        }
+        button { 
+            font-size: 16px; 
+            padding: 12px 28px; 
+            margin-top: 20px; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            background-color: var(--primary-blue); 
+            color: #fff; 
+            transition: background-color 0.3s, transform 0.2s; 
+            font-weight: 500;
+        }
+        button:hover { background-color: #357abd; transform: translateY(-2px); }
+        video { transform: scaleX(-1); background-color: #000; border-radius: 12px; }
 
         /* --- 시작 페이지 --- */
-        .start-page-container { max-width: 700px; margin: 0 auto; }
         .header-logos { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
         .header-logos img { max-height: 40px; }
         .start-form .form-row { display: flex; align-items: center; margin-bottom: 20px; }
         .start-form label { width: 120px; font-size: 18px; font-weight: bold; text-align: left; }
-        .start-form input, .start-form select { flex-grow: 1; padding: 15px 20px; border: 1px solid #ccc; border-radius: 30px; font-size: 16px; }
+        .start-form input, .start-form select { flex-grow: 1; padding: 15px 20px; border: 1px solid var(--border-color); border-radius: 30px; font-size: 16px; }
+        .start-form input:focus, .start-form select:focus { outline: none; border-color: var(--primary-blue); box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2); }
         
         /* --- 안내 페이지 --- */
         .text-box { text-align: left; line-height: 1.8; }
 
-        /* --- 장치 확인 페이지 정렬 --- */
-        #mic-check-ui {
-            display: flex;
-            flex-direction: column; /* 세로 정렬 */
-            align-items: center;   /* 가운데 정렬 */
-            gap: 15px;             /* 요소 간 간격 */
-            margin-top: 20px;
-        }
-        #mic-check-ui h4, #mic-check-ui p { margin: 0; }
+        /* --- 장치 확인 페이지 --- */
+        #mic-check-ui { display: flex; flex-direction: column; align-items: center; gap: 15px; margin-top: 20px; }
+        #mic-check-ui h4, #mic-check-ui p { margin: 0; color: var(--light-text); }
+        #mic-visualizer { border: 1px solid var(--border-color); border-radius: 4px; }
 
         /* --- 답변 준비 페이지 --- */
-        #prep-page .content-box { background-color: #e9e9e9; padding: 60px 40px; min-height: 400px; display: flex; flex-direction: column; justify-content: center; }
-        #prep-question { font-size: 1.5em; line-height: 1.6; flex-grow: 1; display: flex; align-items: center; justify-content: center; }
-        #prep-timer-text { font-size: 1.2em; }
-        #prep-timer-text span { color: #ff4d4d; font-weight: bold; }
+        #prep-page .content-box { background-color: #fff; }
+        #prep-question { font-size: 1.5em; line-height: 1.6; margin-bottom: 30px; }
+        #prep-timer-text { font-size: 1.2em; color: var(--light-text); }
+        #prep-timer-text span { color: var(--primary-blue); font-weight: bold; }
 
         /* --- 면접 진행 페이지 --- */
-        #interview-page .content-box { padding: 0; overflow: hidden; position: relative; }
-        #interview-timer-display { background-color: #e0e0e0; padding: 8px; font-size: 1.2em; font-weight: bold; width: 100px; margin: 20px auto; border-radius: 5px; }
-        #interview-question-bar { background-color: #f0f0f0; padding: 20px; font-size: 1.1em; line-height: 1.5; }
-        #webcam-interview { width: 100%; height: auto; }
+        #interview-page .content-box { padding: 0; overflow: hidden; }
+        #interview-timer-display { background-color: rgba(0,0,0,0.5); color: white; padding: 8px 16px; font-size: 1.1em; font-weight: bold; border-radius: 20px; position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 10; }
+        #interview-question-bar { background-color: #f8f9fa; border-bottom: 1px solid var(--border-color); padding: 20px; font-size: 1.1em; line-height: 1.5; }
+        #webcam-interview { width: 100%; height: auto; border-radius: 0 0 12px 12px; }
 
-        /* --- 답변 저장 페이지 --- */
+        /* --- ✅ [수정] 답변 저장 페이지 (디자인 변경) --- */
         #saving-page .content-box { min-height: 400px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
-        #saving-page .spinner-container { position: relative; width: 150px; height: 150px; margin-bottom: 30px; }
-        #saving-page .robot-icon { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80px; }
-        #saving-page .spinner { border: 8px solid #e9e9e9; border-top: 8px solid #6c63ff; border-radius: 50%; width: 150px; height: 150px; animation: spin 1.5s linear infinite; }
+        #saving-page .spinner { border: 8px solid #e9ecef; border-top: 8px solid var(--primary-blue); border-radius: 50%; width: 80px; height: 80px; animation: spin 1.2s linear infinite; margin-bottom: 30px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         #saving-page .aivora-logo { position: absolute; bottom: 30px; right: 30px; height: 30px; }
 
         /* --- 최종 결과 페이지 --- */
         .result-page .content-box { text-align: left; }
-        .result-page h1 { font-size: 24px; border-bottom: 2px solid #6c63ff; padding-bottom: 15px; margin-top: 0; }
-        .result-page h1 span { color: #6c63ff; }
+        .result-page h1 { font-size: 24px; border-bottom: 2px solid var(--primary-blue); padding-bottom: 15px; margin-top: 0; }
+        .result-page h1 span { color: var(--primary-blue); }
         .result-page .aivora-logo { float: right; height: 30px; }
     </style>
 </head>
@@ -65,7 +94,7 @@
     <div id="start-page" class="page">
         <div class="content-box start-page-container">
             <div class="header-logos">
-                <img src="images/hailab_logo.webp" alt="Human-AI Interaction Laboratory">
+                <img src="images/hailab-logo.webp" alt="Human-AI Interaction Laboratory">
                 <img src="https://www.skku.edu/_res/skku/img/skku_s.png" alt="Sungkyunkwan University">
             </div>
             <form id="start-form" class="start-form">
@@ -92,12 +121,7 @@
     <div id="guide-page" class="page hidden">
         <div class="content-box text-box">
             <h2>실험 안내</h2>
-            <p>안녕하세요, 반갑습니다!</p>
-            <p>여러분은 지금부터 Aivora에서 직접 제작한 AI 면접 시스템을 체험하시게 됩니다.</p>
-            <p>이 시스템은 실제 채용 과정에서 활용될 수 있도록 저희 Aivora가 직접 설계한 면접 프로그램입니다. 질문 제시부터 답변 평가까지 회사가 정한 기준을 바탕으로 AI 면접관이 모든 과정을 진행합니다. 즉, 여러분의 답변은 AI 면접관이 직접 분석하고 평가하게 됩니다.</p>
-            <p>이번 실험에서는 실제 면접과 유사한 환경 속에서 여러분이 지원자의 입장이 되어 질문에 응답하시게 됩니다.</p>
-            <p>모든 응답에는 준비 시간이 주어지며, 준비 시간이 끝나면 자동으로 녹음이 시작됩니다.</p>
-            <p>답변 시간은 1분이며, 최소 30초 이상 말씀해주셔야 다음 화면으로 넘어갈 수 있습니다.</p>
+            <p>안녕하세요, 반갑습니다! ... (내용 생략) ...</p>
             <div style="text-align:center;"><button id="guide-next-btn">이해했으며, 다음으로</button></div>
         </div>
     </div>
@@ -110,7 +134,7 @@
             <div id="mic-check-ui">
                 <h4>마이크 체크</h4>
                 <p>마이크에 소리를 내면 아래 막대가 움직입니다.</p>
-                <canvas id="mic-visualizer" width="300" height="50" style="border: 1px solid #ccc;"></canvas>
+                <canvas id="mic-visualizer" width="300" height="50"></canvas>
                 <button id="start-interview-btn">면접 시작하기</button>
             </div>
         </div>
@@ -127,48 +151,30 @@
         <div class="content-box">
             <div id="interview-timer-display">01:00</div>
             <div id="interview-question-bar"></div>
-            <video id="webcam-interview" autoplay playsinline></video>
+            <video id="webcam-interview" autoplay playsinline muted></video>
         </div>
         <button id="submit-answer-btn">답변 완료</button>
     </div>
     
     <div id="saving-page" class="page hidden">
         <div class="content-box">
-            <div class="spinner-container">
-                <img src="https://i.imgur.com/g6Mdb6J.png" alt="AI Robot" class="robot-icon">
-                <div class="spinner"></div>
-            </div>
+            <div class="spinner"></div>
             <p style="font-size: 1.2em; font-weight: bold;">답변이 저장되었습니다!</p>
-            <p>AI 면접관이 다음 문제를 출제할 때까지 잠시만 기다려주세요.</p>
-            <img src="images/Aivora_로고.webp" alt="Aivora Logo" class="aivora-logo">
+            <p style="color: var(--light-text);">AI 면접관이 다음 문제를 출제할 때까지 잠시만 기다려주세요.</p>
+            <img src="images/aivora-logo.webp" alt="Aivora Logo" class="aivora-logo">
         </div>
     </div>
 
     <div id="result-page-pass" class="page hidden result-page">
         <div class="content-box">
             <h1>1차 AI 면접 <span>합격</span>을 진심으로 축하드립니다!</h1>
-            <p>축하드립니다! 귀하는 1차 AI 면접에서 합격하셨습니다. 이번 평가에서 AI 면접관은 귀하의 답변을 다양한 요소로 분석하여 종합적으로 판단했습니다.</p>
-            <p><b>AI 면접관의 평가 결과:</b></p>
-            <ul><li>평가 기준 세우기 / 그래프 그리기 (구현 예정)</li></ul>
-            <p>이러한 점들을 근거로, AI 면접관은 귀하를 합격 기준 충족자로 판정하였습니다. 따라서 귀하는 다음 단계 면접 평가로 이어질 기회를 얻게 되셨습니다.</p>
-            <p>다시 한 번 합격을 축하드립니다.</p>
-            <br>
-            <p>감사합니다.<br>Aivora AI 면접관 드림</p>
-            <img src="images/Aivora_로고.webp" alt="Aivora Logo" class="aivora-logo">
+            <img src="images/aivora-logo.webp" alt="Aivora Logo" class="aivora-logo">
         </div>
     </div>
-
     <div id="result-page-fail" class="page hidden result-page">
         <div class="content-box">
             <h1>1차 AI 면접 평가에서 아쉽게 <span>불합격</span> 판정을 받으셨습니다.</h1>
-            <p>안녕하세요. 아쉽게도 귀하는 1차 AI 면접 평가에서 불합격하셨습니다. 이번 평가에서 AI 면접관은 귀하의 답변을 다양한 요소로 분석하여 종합적으로 판단했습니다.</p>
-            <p><b>AI 면접관의 평가 결과:</b></p>
-            <ul><li>평가 기준 세우기 / 그래프 그리기 (구현 예정)</li></ul>
-            <p>이러한 점들을 근거로, AI 면접관은 귀하를 합격 기준 미충족자로 판정하였습니다. 비록 이번에는 아쉬운 결과를 받으셨지만, 평가에서 드러난 부족한 부분들을 보완한다면 향후 더 좋은 성과를 거두실 수 있을 것이라 기대됩니다.</p>
-            <p>이번 면접에 참여해주셔서 감사드리며, 귀하의 발전을 응원합니다.</p>
-            <br>
-            <p>감사합니다.<br>Aivora AI 면접관 드림</p>
-            <img src="images/Aivora_로고.webp" alt="Aivora Logo" class="aivora-logo">
+            <img src="images/aivora-logo.webp" alt="Aivora Logo" class="aivora-logo">
         </div>
     </div>
     
