@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <title>AI 면접</title>
     <style>
-        /* --- ✅ [수정] 전반적인 디자인 시스템 --- */
         :root {
             --primary-blue: #4a90e2;
             --light-blue-bg: #f0f5fa;
@@ -48,7 +47,7 @@
         button:hover { background-color: #357abd; transform: translateY(-2px); }
         video { transform: scaleX(-1); background-color: #000; border-radius: 12px; }
 
-        /* --- 시작 페이지 --- */
+        .start-page-container { max-width: 700px; margin: 0 auto; }
         .header-logos { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
         .header-logos img { max-height: 40px; }
         .start-form .form-row { display: flex; align-items: center; margin-bottom: 20px; }
@@ -56,33 +55,31 @@
         .start-form input, .start-form select { flex-grow: 1; padding: 15px 20px; border: 1px solid var(--border-color); border-radius: 30px; font-size: 16px; }
         .start-form input:focus, .start-form select:focus { outline: none; border-color: var(--primary-blue); box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2); }
         
-        /* --- 안내 페이지 --- */
-        .text-box { text-align: left; line-height: 1.8; }
+        .info-page-layout .content-box { text-align: left; }
+        .info-page-layout h1 { font-size: 24px; border-bottom: 2px solid var(--primary-blue); padding-bottom: 15px; margin-top: 0; }
+        .info-page-layout h1 span { color: var(--primary-blue); }
+        .info-page-layout p { line-height: 1.8; }
 
-        /* --- 장치 확인 페이지 --- */
         #mic-check-ui { display: flex; flex-direction: column; align-items: center; gap: 15px; margin-top: 20px; }
         #mic-check-ui h4, #mic-check-ui p { margin: 0; color: var(--light-text); }
         #mic-visualizer { border: 1px solid var(--border-color); border-radius: 4px; }
 
-        /* --- 답변 준비 페이지 --- */
         #prep-page .content-box { background-color: #fff; }
         #prep-question { font-size: 1.5em; line-height: 1.6; margin-bottom: 30px; }
         #prep-timer-text { font-size: 1.2em; color: var(--light-text); }
         #prep-timer-text span { color: var(--primary-blue); font-weight: bold; }
 
-        /* --- 면접 진행 페이지 --- */
-        #interview-page .content-box { padding: 0; overflow: hidden; }
-        #interview-timer-display { background-color: rgba(0,0,0,0.5); color: white; padding: 8px 16px; font-size: 1.1em; font-weight: bold; border-radius: 20px; position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 10; }
-        #interview-question-bar { background-color: #f8f9fa; border-bottom: 1px solid var(--border-color); padding: 20px; font-size: 1.1em; line-height: 1.5; }
-        #webcam-interview { width: 100%; height: auto; border-radius: 0 0 12px 12px; }
+        #interview-page .content-box { padding: 20px; overflow: hidden; }
+        #interview-timer-display { background-color: #e9ecef; color: var(--dark-text); padding: 8px 16px; font-size: 1.1em; font-weight: bold; border-radius: 20px; width: fit-content; margin: 0 auto 20px; }
+        #interview-question-bar { background-color: #f8f9fa; border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; font-size: 1em; line-height: 1.6; text-align: left; margin-bottom: 20px; }
+        #webcam-interview { width: 100%; height: auto; border-radius: 12px; }
+        #submit-answer-btn { border-radius: 25px; padding: 12px 30px; font-weight: bold; box-shadow: 0 4px 10px rgba(74, 144, 226, 0.4); }
 
-        /* --- ✅ [수정] 답변 저장 페이지 (디자인 변경) --- */
         #saving-page .content-box { min-height: 400px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
         #saving-page .spinner { border: 8px solid #e9ecef; border-top: 8px solid var(--primary-blue); border-radius: 50%; width: 80px; height: 80px; animation: spin 1.2s linear infinite; margin-bottom: 30px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         #saving-page .aivora-logo { position: absolute; bottom: 30px; right: 30px; height: 30px; }
 
-        /* --- 최종 결과 페이지 --- */
         .result-page .content-box { text-align: left; }
         .result-page h1 { font-size: 24px; border-bottom: 2px solid var(--primary-blue); padding-bottom: 15px; margin-top: 0; }
         .result-page h1 span { color: var(--primary-blue); }
@@ -118,10 +115,15 @@
         </div>
     </div>
 
-    <div id="guide-page" class="page hidden">
-        <div class="content-box text-box">
-            <h2>실험 안내</h2>
-            <p>안녕하세요, 반갑습니다! ... (내용 생략) ...</p>
+    <div id="guide-page" class="page hidden info-page-layout">
+        <div class="content-box">
+            <h1>실험 <span>안내</span></h1>
+            <p>안녕하세요, 반갑습니다!</p>
+            <p>여러분은 지금부터 Aivora에서 직접 제작한 AI 면접 시스템을 체험하시게 됩니다.</p>
+            <p>이 시스템은 실제 채용 과정에서 활용될 수 있도록 저희 Aivora가 직접 설계한 면접 프로그램입니다. 질문 제시부터 답변 평가까지 회사가 정한 기준을 바탕으로 AI 면접관이 모든 과정을 진행합니다. 즉, 여러분의 답변은 AI 면접관이 직접 분석하고 평가하게 됩니다.</p>
+            <p>이번 실험에서는 실제 면접과 유사한 환경 속에서 여러분이 지원자의 입장이 되어 질문에 응답하시게 됩니다.</p>
+            <p>모든 응답에는 준비 시간이 주어지며, 준비 시간이 끝나면 자동으로 녹음이 시작됩니다.</p>
+            <p>답변 시간은 1분이며, 최소 30초 이상 말씀해주셔야 다음 화면으로 넘어갈 수 있습니다.</p>
             <div style="text-align:center;"><button id="guide-next-btn">이해했으며, 다음으로</button></div>
         </div>
     </div>
@@ -149,7 +151,7 @@
 
     <div id="interview-page" class="page hidden">
         <div class="content-box">
-            <div id="interview-timer-display">01:00</div>
+            <div id="interview-timer-display">01:30</div>
             <div id="interview-question-bar"></div>
             <video id="webcam-interview" autoplay playsinline muted></video>
         </div>
@@ -167,13 +169,25 @@
 
     <div id="result-page-pass" class="page hidden result-page">
         <div class="content-box">
-            <h1>1차 AI 면접 <span>합격</span>을 진심으로 축하드립니다!</h1>
+            <p>축하드립니다! 귀하는 1차 AI 면접에서 합격하셨습니다. 이번 평가에서 AI 면접관은 귀하의 답변을 다양한 요소로 분석하여 종합적으로 판단했습니다.</p>
+            <p><b>AI 면접관의 평가 결과:</b></p>
+            <ul><li>평가 기준 세우기 / 그래프 그리기 (구현 예정)</li></ul>
+            <p>이러한 점들을 근거로, AI 면 '귀하를 합격 기준 충족자로 판정하였습니다. 따라서 귀하는 다음 단계 면접 평가로 이어질 기회를 얻게 되셨습니다.</p>
+            <p>다시 한 번 합격을 축하드립니다.</p>
+            <br>
+            <p>감사합니다.<br>Aivora AI 면접관 드림</p>
             <img src="images/aivora-logo.webp" alt="Aivora Logo" class="aivora-logo">
         </div>
     </div>
     <div id="result-page-fail" class="page hidden result-page">
         <div class="content-box">
-            <h1>1차 AI 면접 평가에서 아쉽게 <span>불합격</span> 판정을 받으셨습니다.</h1>
+            <p>안녕하세요. 아쉽게도 귀하는 1차 AI 면접 평가에서 불합격하셨습니다. 이번 평가에서 AI 면접관은 귀하의 답변을 다양한 요소로 분석하여 종합적으로 판단했습니다.</p>
+            <p><b>AI 면접관의 평가 결과:</b></p>
+            <ul><li>평가 기준 세우기 / 그래프 그리기 (구현 예정)</li></ul>
+            <p>이러한 점들을 근거로, AI 면접관은 귀하를 합격 기준 미충족자로 판정하였습니다. 비록 이번에는 아쉬운 결과를 받으셨지만, 평가에서 드러난 부족한 부분들을 보완한다면 향후 더 좋은 성과를 거두실 수 있을 것이라 기대됩니다.</p>
+            <p>이번 면접에 참여해주셔서 감사드리며, 귀하의 발전을 응원합니다.</p>
+            <br>
+            <p>감사합니다.<br>Aivora AI 면접관 드림</p>
             <img src="images/aivora-logo.webp" alt="Aivora Logo" class="aivora-logo">
         </div>
     </div>
