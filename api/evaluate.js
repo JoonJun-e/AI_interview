@@ -1,16 +1,15 @@
-import { SpeechClient } from '@google-cloud/speech';
-import { VertexAI } from '@google-cloud/vertexai';
+// ======================= [api/evaluate.js 코드 시작] =======================
 import { Storage } from '@google-cloud/storage';
 import { google } from 'googleapis';
+// ❌ VertexAI 관련 import 제거
 
 // --- Google Cloud 설정 ---
 const credentials = JSON.parse(process.env.GCP_CREDENTIALS);
-const GCS_BUCKET_NAME = 'YOUR_BUCKET_NAME'; // 👈 여기에 생성한 GCS 버킷 이름을 넣으세요.
-const GOOGLE_SHEET_ID = 'YOUR_SHEET_ID';   // 👈 여기에 구글 시트 ID를 넣으세요.
+const GCS_BUCKET_NAME = 'ai-interview-skku-is-2025'; // 👈 여기에 GCS 버킷 이름을 넣으세요.
+const GOOGLE_SHEET_ID = 'YOUR_SHEET_ID';             // 👈 여기에 구글 시트 ID를 넣으세요.
 
-const speechClient = new SpeechClient({ credentials });
 const storage = new Storage({ credentials });
-const vertexAI = new VertexAI({ project: credentials.project_id, location: 'us-central1' });
+// ❌ VertexAI 초기화 코드 제거
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -19,57 +18,44 @@ export default async function handler(req, res) {
 
     try {
         const { userInfo, answers } = req.body;
-        const transcripts = [];
         const audioUrls = [];
 
-        // 전달받은 answers 배열을 순회하며 유형에 따라 다르게 처리
-        for (const answer of answers) {
-            if (answer.type === 'video' && answer.content) {
-                // 비디오 답변 처리
-                const audioBuffer = Buffer.from(answer.content, 'base64');
-                const uniqueFileName = `${Date.now()}-${userInfo.name.replace(/\s/g, '')}.webm`;
-                const gcsUri = `gs://${GCS_BUCKET_NAME}/${uniqueFileName}`;
-
-                const [publicUrl, transcript] = await Promise.all([
-                    uploadToGCS(audioBuffer, uniqueFileName),
-                    speechToTextLong(gcsUri)
-                ]);
-                
-                audioUrls.push(publicUrl);
-                transcripts.push(transcript || "(음성 인식 실패)");
-
-            } else if (answer.type === 'text') {
-                // 텍스트 답변 처리
-                transcripts.push(`[코딩 테스트 답변]:\n${answer.content || "(답변 없음)"}`);
-                audioUrls.push("(텍스트 답변)"); // 시트에 표시될 내용
+        // 모든 답변을 순회하며 GCS에 업로드합니다.
+        for (const base64Audio of answers) {
+            if (!base64Audio) {
+                audioUrls.push("N/A");
+                continue;
             }
+            const audioBuffer = Buffer.from(base64Audio, 'base64');
+            const uniqueFileName = `${Date.now()}-${userInfo.name.replace(/\s/g, '')}-${audioUrls.length + 1}.webm`;
+            const publicUrl = await uploadToGCS(audioBuffer, uniqueFileName);
+            audioUrls.push(publicUrl);
         }
         
-        console.log(`Files uploaded:`, audioUrls);
-        console.log(`STT Results:`, transcripts);
+        console.log(`Files uploaded to GCS:`, audioUrls);
 
-        const fullTranscript = transcripts.join('\n\n---\n\n');
-        const geminiResult = await getGeminiResult(fullTranscript);
-        console.log('Gemini Result:', geminiResult);
-
+        // 구글 시트에 기록할 데이터를 준비합니다.
         const sheetRow = [
-            userInfo.irb_consented_at,
-            userInfo.name,
-            userInfo.id, // 'age' 대신 'id'를 시트에 기록
-            audioUrls.join(', '),
-            fullTranscript,
-            geminiResult
+            new Date().toISOString(),   // 제출 시간
+            userInfo.name,              // 이름
+            userInfo.id,                // ID
+            userInfo.testCondition,     // ✅ userInfo에서 가져오도록 수정
+            audioUrls.join(', \n'),     // 모든 녹음 파일 링크
         ];
-        await appendToSheet(sheetRow);
         
-        res.status(200).json({ result: geminiResult });
+        await appendToSheet(sheetRow);
+        console.log('Data successfully appended to Google Sheet.');
+        
+        // 클라이언트에는 단순 성공 메시지만 보냅니다.
+        res.status(200).json({ status: 'success', message: 'Data saved successfully.' });
 
     } catch (error) {
         console.error('API Error:', error);
-        res.status(500).json({ error: 'An error occurred.', details: error.message });
+        res.status(500).json({ error: 'Failed to save data.', details: error.message });
     }
 }
 
+// GCS에 파일을 업로드하는 함수
 async function uploadToGCS(buffer, fileName) {
     const bucket = storage.bucket(GCS_BUCKET_NAME);
     const file = bucket.file(fileName);
@@ -78,6 +64,7 @@ async function uploadToGCS(buffer, fileName) {
     return file.publicUrl();
 }
 
+// 구글 시트에 한 행을 추가하는 함수
 async function appendToSheet(rowData) {
     const auth = new google.auth.GoogleAuth({
         credentials,
@@ -92,28 +79,5 @@ async function appendToSheet(rowData) {
     });
 }
 
-async function speechToTextLong(gcsUri) {
-    if (!gcsUri) return "";
-    const audio = { uri: gcsUri };
-    const config = {
-        encoding: 'WEBM_OPUS',
-        sampleRateHertz: 48000,
-        languageCode: 'ko-KR',
-    };
-    const request = { audio, config };
-    const [operation] = await speechClient.longRunningRecognize(request);
-    const [response] = await operation.promise();
-    return response.results.map(result => result.alternatives[0].transcript).join('\n');
-}
-
-async function getGeminiResult(text) {
-    const generativeModel = vertexAI.getGenerativeModel({ model: 'gemini-1.0-pro' });
-    const prompt = `당신은 AI 면접관입니다. 지원자의 여러 질문에 대한 답변이 순서대로 주어집니다. 모든 답변을 종합적으로 고려하여 최종적으로 '합격' 또는 '불합격'으로만 판단해주세요. 코딩 테스트 답변에 대해서는 정답 여부를 간략하게 언급하고, 나머지 인성 질문에 대한 답변을 종합하여 최종 결론을 내주세요.
-    ---
-    [지원자 답변 내용]
-    ${text}
-    ---
-    `;
-    const resp = await generativeModel.generateContent(prompt);
-    return resp.response.candidates[0].content.parts[0].text;
-}
+// ❌ getGeminiResult 함수 완전히 제거
+// ======================= [api/evaluate.js 코드 끝] =======================

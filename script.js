@@ -7,7 +7,7 @@ let recordedChunks = [];
 let timerInterval, prepTimerInterval;
 let currentQuestionIndex = 0;
 
-// --- ✅ [수정] 새로운 질문 목록과 시간표 적용 --- // 임시로 3초로 변경
+// --- 질문 데이터 ---
 const questions = [
     { text: '1분동안 자기 소개를 해주세요.', prepTime: 3, answerTime: 60 },
     { text: '당신은 팀 프로젝트에서 중요한 결정을 내려야 하는 상황입니다. 프로젝트 마감 기한은 다가오는데, 두 명의 동료가 서로 다른 의견을 내고 있습니다. 한 명은 새로운 방식을 시도해야 한다고 주장하고, 다른 한 명은 검증된 기존 방식을 고수해야 한다고 합니다. 이 상황에서 팀원들을 어떻게 설득하고, 프로젝트를 어떤 방향으로 이끌어가시겠습니까? 구체적으로 어떤 말을 할지 설명해주세요.', prepTime: 3, answerTime: 90 },
@@ -56,11 +56,9 @@ function visualizeMic() {
     analyser = audioContext.createAnalyser();
     const source = audioContext.createMediaStreamSource(localStream);
     source.connect(analyser);
-
     const canvasCtx = micVisualizer.getContext('2d');
     const bufferLength = analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
-
     function draw() {
         requestAnimationFrame(draw);
         analyser.getByteTimeDomainData(dataArray);
@@ -132,11 +130,9 @@ function startNextQuestion() {
     }
     const question = questions[currentQuestionIndex];
     showPage('prep');
-    
     prepQuestion.textContent = question.text;
     let prepTimeLeft = question.prepTime;
     prepTimerText.textContent = `${prepTimeLeft}초 뒤`;
-
     clearInterval(prepTimerInterval);
     prepTimerInterval = setInterval(() => {
         prepTimeLeft--;
@@ -151,14 +147,12 @@ function startNextQuestion() {
 function startAnswer() {
     const question = questions[currentQuestionIndex];
     showPage('interview');
-    
     interviewQuestionBar.textContent = question.text;
     webcamInterview.srcObject = localStream;
     if (!startRecording(localStream)) {
         alert("녹음을 시작할 수 없습니다.");
         return;
     }
-
     let answerTimeLeft = question.answerTime;
     clearInterval(timerInterval);
     timerInterval = setInterval(() => {
@@ -176,29 +170,68 @@ async function submitAnswer() {
     clearInterval(timerInterval);
     const audioBlob = await stopRecording();
     userAnswers.push(audioBlob);
-
     showPage('saving');
-    // 저장 시간. 10초로 변경하려면 10000으로 수정
     setTimeout(() => {
         currentQuestionIndex++;
         startNextQuestion();
     }, 2500);
 }
 
-function finishInterview() {
-    const condition = userData.testCondition;
-    if (condition === 'pass') {
-        showPage('resultPass');
-    } else {
-        showPage('resultFail');
+// ✅ [수정] 서버 저장 기능이 복구된 finishInterview 함수
+async function finishInterview() {
+    showPage('saving');
+    
+    const answersPayload = await Promise.all(
+        userAnswers.map(blob => blobToBase64(blob))
+    );
+    
+    try {
+        await sendDataToServer(answersPayload);
+        
+        const condition = userData.testCondition;
+        if (condition === 'pass') {
+            showPage('resultPass');
+        } else {
+            showPage('resultFail');
+        }
+
+    } catch (error) {
+        alert("데이터 저장에 실패했습니다: " + error.message);
+        showPage('deviceCheck');
     }
+}
+
+function blobToBase64(blob) {
+    return new Promise((resolve, reject) => {
+        if (blob.size === 0) { resolve(""); return; }
+        const reader = new FileReader();
+        reader.readAsDataURL(blob);
+        reader.onloadend = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = error => reject(error);
+    });
+}
+
+// ✅ [수정] 서버에 데이터를 보내고 응답을 처리하는 함수
+async function sendDataToServer(answersPayload) {
+    const payload = { userInfo: userData, answers: answersPayload };
+    const response = await fetch('/api/evaluate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.details || errorData.error || 'API 호출에 실패했습니다.');
+    }
+    
+    return await response.json();
 }
 
 // --- 이벤트 리스너 설정 ---
 window.addEventListener('load', () => {
     showPage('start');
 });
-
 startForm.addEventListener('submit', e => {
     e.preventDefault();
     userData.name = document.getElementById('name').value;
@@ -206,13 +239,10 @@ startForm.addEventListener('submit', e => {
     userData.testCondition = conditionSelect.value;
     showPage('guide');
 });
-
 guideNextBtn.addEventListener('click', () => {
     showPage('deviceCheck');
     setTimeout(setupDevices, 100);
 });
-
 startInterviewBtn.addEventListener('click', startNextQuestion);
-
 submitAnswerBtn.addEventListener('click', submitAnswer);
 // ======================= [script.js 코드 끝] =======================
