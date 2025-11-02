@@ -7,7 +7,7 @@ let recordedChunks = [];
 let timerInterval, prepTimerInterval;
 let currentQuestionIndex = 0;
 
-// --- 질문 데이터 ---
+// --- 질문 데이터 (테스트용 3초) ---
 const questions = [
     { text: '1분동안 자기 소개를 해주세요.', prepTime: 3, answerTime: 60 },
     { text: '당신은 팀 프로젝트에서 중요한 결정을 내려야 하는 상황입니다. 프로젝트 마감 기한은 다가오는데, 두 명의 동료가 서로 다른 의견을 내고 있습니다. 한 명은 새로운 방식을 시도해야 한다고 주장하고, 다른 한 명은 검증된 기존 방식을 고수해야 한다고 합니다. 이 상황에서 팀원들을 어떻게 설득하고, 프로젝트를 어떤 방향으로 이끌어가시겠습니까? 구체적으로 어떤 말을 할지 설명해주세요.', prepTime: 3, answerTime: 90 },
@@ -26,6 +26,7 @@ const pages = {
     prep: document.getElementById('prep-page'),
     interview: document.getElementById('interview-page'),
     saving: document.getElementById('saving-page'),
+    video: document.getElementById('video-page'),
     resultPass: document.getElementById('result-page-pass'),
     resultFail: document.getElementById('result-page-fail'),
 };
@@ -43,6 +44,7 @@ const prepQuestion = document.getElementById('prep-question');
 const prepTimerText = document.getElementById('prep-timer-text').querySelector('span');
 const interviewTimerDisplay = document.getElementById('interview-timer-display');
 const interviewQuestionBar = document.getElementById('interview-question-bar');
+const postInterviewPlayer = document.getElementById('post-interview-player');
 
 // --- 페이지 전환 ---
 function showPage(pageId) {
@@ -96,20 +98,36 @@ async function setupDevices() {
     }
 }
 
-// --- 녹음 로직 ---
+// --- ✅ [수정] 녹음 로직 (버그 수정본) ---
 function startRecording(stream) {
-    if (!stream || !stream.active) return false;
+    if (!stream || !stream.active) {
+        alert("미디어 스트림이 활성화되지 않았습니다.");
+        return false;
+    }
     const audioTracks = stream.getAudioTracks();
-    if (audioTracks.length === 0) return false;
+    if (audioTracks.length === 0) {
+        alert("오디오 트랙을 찾을 수 없습니다.");
+        return false;
+    }
     const audioStream = new MediaStream(audioTracks);
     recordedChunks = [];
+    
+    const mimeTypes = ['audio/webm;codecs=opus', 'audio/webm'];
+    const supportedMimeType = mimeTypes.find(type => MediaRecorder.isTypeSupported(type));
+
+    if (!supportedMimeType) {
+        alert("지원되는 오디오 녹음 형식이 없습니다.");
+        return false;
+    }
+
     try {
-        mediaRecorder = new MediaRecorder(audioStream);
+        mediaRecorder = new MediaRecorder(audioStream, { mimeType: supportedMimeType });
         mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
         mediaRecorder.start();
         return true;
     } catch (error) {
         console.error("녹음 시작 오류:", error);
+        alert("녹음 시작 오류: " + error.message);
         return false;
     }
 }
@@ -144,18 +162,19 @@ function startNextQuestion() {
     }, 1000);
 }
 
+// ✅ [수정] 타이머 1초 지연 버그 수정
 function startAnswer() {
     const question = questions[currentQuestionIndex];
     showPage('interview');
     interviewQuestionBar.textContent = question.text;
     webcamInterview.srcObject = localStream;
     if (!startRecording(localStream)) {
-        alert("녹음을 시작할 수 없습니다.");
         return;
     }
+    
     let answerTimeLeft = question.answerTime;
-    clearInterval(timerInterval);
-    timerInterval = setInterval(() => {
+
+    const updateTimer = () => {
         const minutes = String(Math.floor(answerTimeLeft / 60)).padStart(2, '0');
         const seconds = String(answerTimeLeft % 60).padStart(2, '0');
         interviewTimerDisplay.textContent = `${minutes}:${seconds}`;
@@ -163,7 +182,11 @@ function startAnswer() {
         if (answerTimeLeft < 0) {
             submitAnswer();
         }
-    }, 1000);
+    };
+    
+    clearInterval(timerInterval);
+    updateTimer(); // 1초 기다리지 않고 타이머를 즉시 1회 실행
+    timerInterval = setInterval(updateTimer, 1000); // 그 후 1초마다 실행
 }
 
 async function submitAnswer() {
@@ -177,7 +200,7 @@ async function submitAnswer() {
     }, 2500);
 }
 
-// ✅ [수정] 서버 저장 기능이 복구된 finishInterview 함수
+// ✅ [수정] 면접 종료 시 비디오 재생
 async function finishInterview() {
     showPage('saving');
     
@@ -188,12 +211,9 @@ async function finishInterview() {
     try {
         await sendDataToServer(answersPayload);
         
-        const condition = userData.testCondition;
-        if (condition === 'pass') {
-            showPage('resultPass');
-        } else {
-            showPage('resultFail');
-        }
+        showPage('video');
+        postInterviewPlayer.load();
+        postInterviewPlayer.play();
 
     } catch (error) {
         alert("데이터 저장에 실패했습니다: " + error.message);
@@ -211,7 +231,6 @@ function blobToBase64(blob) {
     });
 }
 
-// ✅ [수정] 서버에 데이터를 보내고 응답을 처리하는 함수
 async function sendDataToServer(answersPayload) {
     const payload = { userInfo: userData, answers: answersPayload };
     const response = await fetch('/api/evaluate', {
@@ -245,4 +264,14 @@ guideNextBtn.addEventListener('click', () => {
 });
 startInterviewBtn.addEventListener('click', startNextQuestion);
 submitAnswerBtn.addEventListener('click', submitAnswer);
+
+// ✅ [추가] 비디오 재생이 끝나면 최종 결과 페이지 표시
+postInterviewPlayer.addEventListener('ended', () => {
+    const condition = userData.testCondition;
+    if (condition === 'pass') {
+        showPage('resultPass');
+    } else {
+        showPage('resultFail');
+    }
+});
 // ======================= [script.js 코드 끝] =======================

@@ -78,6 +78,10 @@
         #saving-page .spinner { border: 8px solid #e9ecef; border-top: 8px solid var(--primary-blue); border-radius: 50%; width: 80px; height: 80px; animation: spin 1.2s linear infinite; margin-bottom: 30px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         #saving-page .aivora-logo { position: absolute; bottom: 30px; right: 30px; height: 30px; }
+        
+        /* ✅ [추가] 비디오 재생 페이지 스타일 */
+        #video-page .content-box { padding: 20px; }
+        #post-interview-player { width: 100%; max-width: 720px; border-radius: 12px; transform: scaleX(1); }
 
         .result-page .content-box { text-align: left; }
         .result-page h1 { font-size: 24px; border-bottom: 2px solid var(--primary-blue); padding-bottom: 15px; margin-top: 0; }
@@ -150,7 +154,7 @@
 
     <div id="interview-page" class="page hidden">
         <div class="content-box">
-            <div id="interview-timer-display">01:30</div>
+            <div id="interview-timer-display">01:00</div>
             <div id="interview-question-bar"></div>
             <video id="webcam-interview" autoplay playsinline muted></video>
         </div>
@@ -163,6 +167,16 @@
             <p style="font-size: 1.2em; font-weight: bold;">답변이 저장되었습니다!</p>
             <p style="color: var(--light-text);">AI 면접관이 다음 문제를 출제할 때까지 잠시만 기다려주세요.</p>
             <img src="images/aivora-logo.webp" alt="Aivora Logo" class="aivora-logo">
+        </div>
+    </div>
+
+    <div id="video-page" class="page hidden">
+        <div class="content-box">
+            <h2>결과를 분석하는 동안 잠시 영상을 시청해주세요.</h2>
+            <video id="post-interview-player" autoplay controls>
+                <source src="https://storage.googleapis.com/ai-interview-skku-is-2025/final-video.mp4" type="video/mp4">
+                브라우저가 비디오 태그를 지원하지 않습니다.
+            </video>
         </div>
     </div>
 
