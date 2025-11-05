@@ -32,7 +32,7 @@ const hardSkillQuestions = [
     { type: 'video', text: '작성하신 solution 함수에서 조건문 구조가 어떻게 동작하는지 설명해주세요.\n그리고 코드가 올바르게 동작하는지 검증하기위해 어떻게 하실건지 예시를 들어 설명해주세요.', prepTime: 5, answerTime: 60, reviewCode: true },
 
     // 코딩 문제 3
-    { type: 'coding', text: '자연수 N이 주어지면, N의 각 자릿수의 합을 구해서 return 하는 solution 함수를 만들어 주세요.\n예를들어 N = 123이면 1 + 2 + 3 = 6을 return 하면 됩니다.\n\n제한사항:\nN의 범위 : 100,000,000 이하의 자연수', prepTime: 5, answerTime: 90 },
+    { type: 'coding', text: '자연수 N이 주어지면, N의 각 자릿수의 합을 구해서 return 하는 solution 함수를 만들어 주세요.\n예를들어 N = 123이면 1 + 2 + 3 = 6을 return 하면 됩니다.\n\n제한사항:\nN의 범위 : 100,000,000 이하의 자연수', prepTime: 5, answerTime: 120 },
     { type: 'video', text: '작성하신 함수에서 자릿수를 더하는 과정이 어떻게 동작하는지 구체적으로 설명해주세요.\n그리고 만약 자릿수의 합이 아니라 자릿수의 곱을 구해야 한다면, 코드를 어떻게 바꾸실건지 설명할 건지 설명하시고, 코드가 올바르게 동작하는지 확인하기 위해 어떤 입력값을 테스트할건지 예시를 들어 설명해주세요.', prepTime: 5, answerTime: 60, reviewCode: true },
 
     // 코딩 문제 4
@@ -53,6 +53,10 @@ const pages = {
     video: document.getElementById('video-page'),
     resultPass: document.getElementById('result-page-pass'),
     resultFail: document.getElementById('result-page-fail'),
+    resultSoftPass: document.getElementById('result-page-pass'),
+    resultSoftFail: document.getElementById('result-page-fail'),
+    resultHardPass: document.getElementById('result-page-hard-pass'),
+    resultHardFail: document.getElementById('result-page-hard-fail'),
 };
 
 const startForm = document.getElementById('user-info-form');
@@ -81,8 +85,8 @@ const toast = document.getElementById('toast');
 
 // --- 페이지 전환 ---
 function showPage(pageId) {
-    Object.values(pages).forEach(page => page.classList.add('hidden'));
-    pages[pageId].classList.remove('hidden');
+    Object.values(pages).forEach(page => { if (page) page.classList.add('hidden'); });
+    if (pages[pageId]) pages[pageId].classList.remove('hidden');
 }
 
 function showToast(message) {
@@ -107,10 +111,10 @@ function visualizeMic() {
     function draw() {
         requestAnimationFrame(draw);
         analyser.getByteTimeDomainData(dataArray);
-        canvasCtx.fillStyle = '#f0f0f0';
+        canvasCtx.fillStyle = '#fff';
         canvasCtx.fillRect(0, 0, micVisualizer.width, micVisualizer.height);
         canvasCtx.lineWidth = 2;
-        canvasCtx.strokeStyle = '#333';
+        canvasCtx.strokeStyle = '#4a90e2';
         canvasCtx.beginPath();
         const sliceWidth = micVisualizer.width * 1.0 / bufferLength;
         let x = 0;
@@ -179,6 +183,8 @@ function startNextQuestion() {
     }
     const question = questions[currentQuestionIndex];
 
+    webcamInterview.classList.remove('video-small');
+
     if (question.type === 'video') {
         showPage('prep');
         prepQuestion.textContent = question.text;
@@ -233,6 +239,12 @@ function startAnswer() {
     showPage('interview');
     interviewQuestionBar.textContent = question.text;
     webcamInterview.srcObject = localStream;
+    if (question.reviewCode && lastSubmittedCode) {
+        codeReviewArea.classList.add('visible');
+        reviewedCode.textContent = lastSubmittedCode;
+    } else {
+        codeReviewArea.classList.remove('visible');
+    }
     if (!startRecording(localStream)) return;
 
     let answerTimeLeft = question.answerTime;
@@ -276,21 +288,20 @@ function showSavingAndNext() {
 
 async function finishInterview() {
     showPage('saving');
-    
-    // 카메라/마이크 끄기
     if (localStream) {
         localStream.getTracks().forEach(track => track.stop());
     }
-    
     const answersPayload = await Promise.all(
         userAnswers.map(blob => blobToBase64(blob))
     );
-    
     try {
         await sendDataToServer(answersPayload);
         showPage('video');
         postInterviewPlayer.load();
-        postInterviewPlayer.play().catch(e => console.log("Autoplay blocked:", e));
+        postInterviewPlayer.play().catch(() => {
+            postInterviewPlayer.muted = true;
+            postInterviewPlayer.play();
+        });
     } catch (error) {
         alert("데이터 저장에 실패했습니다: " + error.message);
         window.location.reload();
@@ -353,10 +364,12 @@ submitCodeBtn.addEventListener('click', submitCode);
 
 postInterviewPlayer.addEventListener('ended', () => {
     const condition = userData.testCondition;
-    if (condition === 'pass') {
-        showPage('resultPass');
+    if (interviewType === 'soft') {
+        if (condition === 'pass') showPage('resultSoftPass');
+        else showPage('resultSoftFail');
     } else {
-        showPage('resultFail');
+        if (condition === 'pass') showPage('resultHardPass');
+        else showPage('resultHardFail');
     }
 });
 // ======================= [script.js 코드 끝] =======================

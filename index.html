@@ -47,48 +47,176 @@
         button:hover { background-color: #357abd; transform: translateY(-2px); }
         video { transform: scaleX(-1); background-color: #000; border-radius: 12px; }
 
-        /* --- 시작 페이지 --- */
-        .start-page-container { max-width: 700px; margin: 0 auto; }
+        /* --- 시작 페이지 (트랙 선택 & 사용자 정보 공통 스타일) --- */
+        .start-page-container, .user-info-container { max-width: 700px; margin: 0 auto; }
         .header-logos { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
         .header-logos img { max-height: 40px; }
-        .start-form .form-row { display: flex; align-items: center; margin-bottom: 20px; }
-        .start-form label { width: 120px; font-size: 18px; font-weight: bold; text-align: left; }
-        .start-form input, .start-form select { flex-grow: 1; padding: 15px 20px; border: 1px solid var(--border-color); border-radius: 30px; font-size: 16px; }
+        /* ✅ [수정] 트랙 선택 버튼 스타일 */
+        #start-page button { width: 100%; padding: 20px; font-size: 18px; } 
+        .user-info-form .form-row { display: flex; align-items: center; margin-bottom: 20px; }
+        .user-info-form label { width: 120px; font-size: 18px; font-weight: bold; text-align: left; color: var(--light-text);}
+        .user-info-form input, .user-info-form select { flex-grow: 1; padding: 15px 20px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 16px; }
         
         /* --- 안내 페이지 --- */
-        .text-box { text-align: left; line-height: 1.8; }
+        .info-page-layout .content-box { text-align: left; }
+        .info-page-layout h1 { font-size: 24px; border-bottom: 2px solid var(--primary-blue); padding-bottom: 15px; margin-top: 0; }
+        .info-page-layout p { line-height: 1.8; }
 
-        /* --- 장치 확인 페이지 정렬 --- */
+        /* --- 장치 확인 페이지 --- */
         #mic-check-ui { display: flex; flex-direction: column; align-items: center; gap: 15px; margin-top: 20px; }
         #mic-check-ui h4, #mic-check-ui p { margin: 0; color: var(--light-text); }
         #mic-visualizer { border: 1px solid var(--border-color); border-radius: 4px; }
 
         /* --- 답변 준비 페이지 --- */
-        #prep-page .content-box { background-color: #e9e9e9; padding: 60px 40px; min-height: 400px; display: flex; flex-direction: column; justify-content: center; }
-        #prep-question { font-size: 1.5em; line-height: 1.6; flex-grow: 1; display: flex; align-items: center; justify-content: center; }
-        #prep-timer-text { font-size: 1.2em; }
-        #prep-timer-text span { color: #ff4d4d; font-weight: bold; }
+        #prep-page .content-box { background-color: #f8f9fa; border: 1px solid var(--border-color); min-height: 300px; display: flex; flex-direction: column; justify-content: center; }
+        #prep-question { font-size: 1.5em; line-height: 1.6; margin-bottom: 30px; }
+        #prep-timer-text { font-size: 1.2em; color: var(--light-text); }
+        #prep-timer-text span { color: var(--primary-blue); font-weight: bold; }
 
         /* --- 면접 진행 페이지 --- */
-        #interview-page .content-box { padding: 20px; overflow: hidden; }
-        #interview-flex-container { display: flex; gap: 20px; align-items: flex-start; }
-        #interview-main-area { flex: 1.5; display: flex; flex-direction: column; }
-        #code-review-area { flex: 1; text-align: left; background-color: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); max-height: 400px; overflow-y: auto; white-space: pre-wrap; font-family: monospace; font-size: 14px; display: none; }
+        #interview-page { max-width: 1100px; }
+        #interview-page .content-box { 
+            padding: 30px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 20px; 
+        }
+        #interview-top-area {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+        #interview-timer-display { 
+            background-color: transparent; 
+            color: var(--primary-blue); 
+            font-size: 1.8em; 
+            font-weight: bold; 
+            padding: 0;
+            margin: 0;
+        }
+        #interview-flex-container { 
+            display: flex; 
+            gap: 30px; 
+            align-items: stretch; 
+            min-height: 500px;
+        }
+        #interview-left-panel {
+            flex: 1.2;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        #interview-question-bar { 
+            background-color: #f8f9fa; 
+            border: 1px solid var(--border-color); 
+            border-radius: 12px; 
+            padding: 25px; 
+            font-size: 1.1em; 
+            line-height: 1.6; 
+            text-align: left; 
+            flex-shrink: 0;
+        }
+        #code-review-area { 
+            flex-grow: 1; 
+            text-align: left; 
+            background-color: #fff; 
+            padding: 20px; 
+            border-radius: 12px; 
+            border: 1px solid var(--border-color); 
+            overflow-y: auto; 
+            white-space: pre-wrap; 
+            font-family: monospace; 
+            font-size: 14px; 
+            line-height: 1.5; 
+            display: none; 
+        }
         #code-review-area.visible { display: block; }
-        #interview-timer-display { background-color: #e9ecef; color: var(--dark-text); padding: 8px 16px; font-size: 1.1em; font-weight: bold; border-radius: 20px; width: fit-content; margin: 0 auto 20px; }
-        #interview-question-bar { background-color: #f8f9fa; border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; font-size: 1em; line-height: 1.6; text-align: left; margin-bottom: 20px; }
-        #webcam-interview { width: 100%; height: auto; border-radius: 12px; }
+        #interview-right-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+        #webcam-interview { 
+            width: 100%; 
+            height: auto; 
+            aspect-ratio: 4/3;
+            object-fit: cover;
+            border-radius: 12px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
 
         /* --- 코딩 문제 페이지 --- */
         #coding-page { max-width: 1200px; }
-        #coding-timer-display { font-size: 1.5em; font-weight: bold; margin-bottom: 20px; color: var(--primary-blue); text-align: left; }
-        .coding-layout { display: flex; gap: 30px; align-items: flex-start; height: 700px; }
-        .left-panel { flex: 2; display: flex; flex-direction: column; gap: 20px; height: 100%; }
-        .right-panel { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 20px; }
-        .problem-description { flex: 0 0 40%; background-color: #f8f9fa; padding: 25px; border-radius: 12px; border: 1px solid var(--border-color); overflow-y: auto; text-align: left; }
-        .editor-area { flex: 1; display: flex; flex-direction: column; }
-        #code-editor { width: 100%; flex-grow: 1; font-family: monospace; font-size: 14px; padding: 20px; border: 1px solid var(--border-color); border-radius: 12px; box-sizing: border-box; resize: none; line-height: 1.5; }
-        #webcam-coding { width: 100%; max-width: 400px; height: auto; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        #coding-page .content-box { padding: 30px; }
+        #coding-timer-display { 
+            font-size: 1.5em; 
+            font-weight: bold; 
+            margin-bottom: 20px; 
+            padding-top: 20px;
+            padding-bottom: 20px;
+            border-top: 1px solid var(--primary-blue);
+            border-bottom: 1px solid var(--primary-blue);
+            color: var(--primary-blue); 
+            text-align: left; 
+        }
+        .coding-layout { 
+            display: flex; 
+            gap: 30px; 
+            align-items: flex-start; 
+        }
+        .left-panel { 
+            flex: 2; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 20px; 
+        }
+        .right-panel { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 20px; 
+        }
+        .problem-description { 
+            background-color: #fff; 
+            padding: 25px; 
+            border-radius: 12px; 
+            border: 1px solid var(--border-color); 
+            overflow-y: auto; 
+            text-align: left; 
+            max-height: 300px; 
+        }
+        .editor-area { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            min-height: 300; 
+        }
+        #code-editor { 
+            width: 100%; 
+            flex-grow: 1; 
+            font-family: monospace; 
+            font-size: 14px; 
+            padding: 20px; 
+            border: 1px solid var(--border-color); 
+            border-radius: 12px; 
+            box-sizing: border-box; 
+            resize: none; 
+            line-height: 1.5; 
+        }
+        #webcam-coding { 
+            width: 100%; 
+            height: auto; 
+            aspect-ratio: 4 / 3; 
+            object-fit: cover; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1); 
+        }
+        #submit-code-btn { 
+            width: 100%; 
+            padding: 15px; 
+            margin-top: auto; 
+        }
 
         /* --- 답변 저장 페이지 --- */
         #saving-page .content-box { min-height: 400px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
@@ -98,13 +226,16 @@
 
         /* --- 비디오 재생 페이지 --- */
         #video-page .content-box { padding: 30px; }
-        #post-interview-player { width: 100%; max-width: 720px; border-radius: 12px; transform: scaleX(1); }
+        #post-interview-player { width: 100%; max-width: 720px; border-radius: 12px; transform: scaleX(1); box-shadow: 0 8px 30px rgba(0,0,0,0.15); }
 
         /* --- 최종 결과 페이지 --- */
         .result-page .content-box { text-align: left; }
         .result-page h1 { font-size: 24px; border-bottom: 2px solid var(--primary-blue); padding-bottom: 15px; margin-top: 0; }
         .result-page h1 span { color: var(--primary-blue); }
         .result-page .aivora-logo { float: right; height: 30px; }
+
+        #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background-color: #e74c3c; color: white; padding: 16px; border-radius: 8px; z-index: 1000; opacity: 0; transition: opacity 0.5s, bottom 0.5s; }
+        #toast.show { opacity: 1; bottom: 50px; }
     </style>
 </head>
 <body>
@@ -128,7 +259,7 @@
                 <img src="images/hailab-logo.webp" alt="HAI Lab Logo">
                 <img src="https://www.skku.edu/_res/skku/img/skku_s.png" alt="SKKU Logo">
             </div>
-            <form id="user-info-form" class="start-form">
+            <form id="user-info-form" class="user-info-form">
                 <div class="form-row"><label for="name">성명</label><input type="text" id="name" placeholder="성함을 입력해주세요" required></div>
                 <div class="form-row"><label for="user-id">ID</label><input type="text" id="user-id" placeholder="메일로 안내받은 ID 입력" required></div>
                 <div class="form-row">
@@ -144,7 +275,7 @@
     </div>
 
     <div id="guide-page" class="page hidden info-page-layout">
-        <div class="content-box text-box">
+        <div class="content-box">
             <h1>실험 <span>안내</span></h1>
             <p>안녕하세요, 반갑습니다!</p>
             <p>여러분은 지금부터 Aivora에서 직접 제작한 AI 면접 시스템을 체험하시게 됩니다.</p>
@@ -179,14 +310,18 @@
 
     <div id="interview-page" class="page hidden">
         <div class="content-box">
+            <div id="interview-top-area">
+                <div id="interview-timer-display">01:00</div>
+            </div>
             <div id="interview-flex-container">
-                <div id="code-review-area">
-                    <h4>[작성하신 코드]</h4>
-                    <pre id="reviewed-code"></pre>
-                </div>
-                <div id="interview-main-area">
-                    <div id="interview-timer-display">01:00</div>
+                <div id="interview-left-panel">
                     <div id="interview-question-bar"></div>
+                    <div id="code-review-area">
+                        <h4 style="margin-top: 0; color: var(--primary-blue);">[작성하신 코드]</h4>
+                        <pre id="reviewed-code"></pre>
+                    </div>
+                </div>
+                <div id="interview-right-panel">
                     <video id="webcam-interview" autoplay playsinline muted></video>
                 </div>
             </div>
@@ -195,9 +330,9 @@
     </div>
 
     <div id="coding-page" class="page hidden">
+        <div id="coding-timer-display">05:00</div>
         <div class="coding-layout">
             <div class="left-panel">
-                <div id="coding-timer-display">05:00</div>
                 <div class="problem-description">
                     <h3 id="coding-question-title" style="color: var(--primary-blue); margin-top: 0;"></h3>
                     <p id="coding-question-text" style="line-height: 1.6; white-space: pre-wrap;"></p>
@@ -208,7 +343,7 @@
             </div>
             <div class="right-panel">
                 <video id="webcam-coding" autoplay playsinline muted></video>
-                <button id="submit-code-btn" style="width: 100%; padding: 15px;">제출하기</button>
+                <button id="submit-code-btn">제출하기</button>
             </div>
         </div>
     </div>
@@ -226,19 +361,21 @@
         <div class="content-box">
             <h2>결과를 분석하는 동안 잠시 영상을 시청해주세요.</h2>
             <video id="post-interview-player" controls>
-                <source src="https://storage.googleapis.com/ai-interview-skku-is-2025/final_video.mp4" type="video/mp4">
+                <source src="https://storage.cloud.google.com/ai-interview-skku-is-2025/final-video.mp4" type="video/mp4">
                 브라우저가 비디오 태그를 지원하지 않습니다.
             </video>
         </div>
     </div>
 
-    <div id="result-page-pass" class="page hidden result-page">
+    <div id="result-page-pass" class="page hidden result-page info-page-layout">
         <div class="content-box">
             <h1>1차 AI 면접 <span>합격</span>을 진심으로 축하드립니다!</h1>
-            <p>축하드립니다! 귀하는 1차 AI 면접에서 합격하셨습니다. 이번 평가에서 AI 면접관은 귀하의 답변을 다양한 요소로 분석하여 종합적으로 판단했습니다.</p>
-            <p><b>AI 면접관의 평가 결과:</b></p>
-            <ul><li>평가 기준 세우기 / 그래프 그리기 (구현 예정)</li></ul>
-            <p>이러한 점들을 근거로, AI 면접관은 귀하를 합격 기준 충족자로 판정하였습니다. 따라서 귀하는 다음 단계 면접 평가로 이어질 기회를 얻게 되셨습니다.</p>
+            <p>축하드립니다! 귀하는 1차 AI 면접에서 합격하셨습니다. 이번 평가에서 AI 면접관은 귀하의 답변을 조직 내 소통 역량과 면접 태도 측면에서 분석하여 종합적으로 판단했습니다.</p>
+            <p>조직 내 소통 역량은 다른 사람과 효과적으로 의사소통하고, 상황을 판단 및 대처하는 능력을 의미하며, 리더십, 문제 대처, 갈등 중재, 설득, 윤리적 판단을 평가합니다.</p>
+            <p>면접 태도는 답변의 논리성, 자신감, 집중력, 긍정성, 신뢰성을 기준으로 평가합니다.</p>
+            <p>AI 면접관의 평가 결과, 귀하께서는 <b>대부분의 조직 내 소통 역량과 태도 요소에서 우수한 성과</b>를 보여주셨습니다. 특히 <b>리더십과 문제 대처 능력, 갈등 중재 능력에서 높은 점수</b>를 받았으며, <b>논리적 사고와 자신감, 집중력에서도 뛰어난 평가</b>를 받았습니다.</p>
+            <p>이러한 결과는 귀하가 팀 내에서 효과적으로 리더십을 발휘하고, 문제 상황에서도 침착하게 대응할 수 있을 것이라 기대됩니다.</p>
+            <p>이러한 점들을 근거로, AI 면접관은 귀하를 <b>합격 기준 충족자</b>로 판정하였습니다. 따라서 귀하는 다음 단계 면접 평가로 이어질 기회를 얻게 되셨습니다.</p>
             <p>다시 한 번 합격을 축하드립니다.</p>
             <br>
             <p>감사합니다.<br>Aivora AI 면접관 드림</p>
@@ -246,13 +383,45 @@
         </div>
     </div>
 
-    <div id="result-page-fail" class="page hidden result-page">
+    <div id="result-page-fail" class="page hidden result-page info-page-layout">
         <div class="content-box">
             <h1>1차 AI 면접 평가에서 아쉽게 <span>불합격</span> 판정을 받으셨습니다.</h1>
-            <p>안녕하세요. 아쉽게도 귀하는 1차 AI 면접 평가에서 불합격하셨습니다. 이번 평가에서 AI 면접관은 귀하의 답변을 다양한 요소로 분석하여 종합적으로 판단했습니다.</p>
-            <p><b>AI 면접관의 평가 결과:</b></p>
-            <ul><li>평가 기준 세우기 / 그래프 그리기 (구현 예정)</li></ul>
-            <p>이러한 점들을 근거로, AI 면접관은 귀하를 합격 기준 미충족자로 판정하였습니다. 비록 이번에는 아쉬운 결과를 받으셨지만, 평가에서 드러난 부족한 부분들을 보완한다면 향후 더 좋은 성과를 거두실 수 있을 것이라 기대됩니다.</p>
+            <p>안녕하세요. 아쉽게도 귀하는 1차 AI 면접 평가에서 불합격하셨습니다. 이번 평가에서 AI 면접관은 귀하의 답변을 조직 내 소통 역량과 면접 태도 측면에서 분석하여 종합적으로 판단했습니다.</p>
+            <p>조직 내 소통 역량은 다른 사람과 효과적으로 의사소통하고, 상황을 판단 및 대처하는 능력을 의미하며, 리더십, 문제 대처, 갈등 중재, 설득, 윤리적 판단을 평가합니다.</p>
+            <p>면접 태도는 답변의 논리성, 자신감, 집중력, 긍정성, 신뢰성을 기준으로 평가합니다.</p>
+            <p>AI 면접관의 평가 결과, 귀하께서는 <b>일부 조직 내 소통 역량과 태도 요소에서 기대 수준에 미치지 못하는 결과</b>를 보였습니다. 특히 <b>리더십과 문제 대처 능력, 갈등 중재에서 다소 낮은 점수</b>를 받았으며, <b>논리적 사고와 자신감, 집중력에서 보완이 필요</b>합니다.</p>
+            <p>이번 결과는 팀 내 다양한 상황에서 보다 효과적으로 대응하고 설득력 있는 의사소통을 강화할 필요가 있을 것으로 판단됩니다.</p>
+            <p>이러한 점들을 근거로, AI 면접관은 귀하를 <b>합격 기준 미충족자</b>로 판정하였습니다. 비록 이번에는 아쉬운 결과를 받으셨지만, 평가에서 드러난 부분들을 보완한다면 향후 더 좋은 성과를 거두실 수 있을 것이라 기대됩니다.</p>
+            <p>이번 면접에 참여해주셔서 감사드리며, 귀하의 발전을 응원합니다.</p>
+            <br>
+            <p>감사합니다.<br>Aivora AI 면접관 드림</p>
+            <img src="images/aivora-logo.webp" alt="Aivora Logo" class="aivora-logo">
+        </div>
+    </div>
+
+    <div id="result-page-hard-pass" class="page hidden result-page info-page-layout">
+        <div class="content-box">
+            <h1>1차 AI 면접 <span>합격</span>을 진심으로 축하드립니다!</h1>
+            <p>축하드립니다! 귀하는 1차 AI 면접에서 합격하셨습니다. 이번 평가에서 AI 면접관은 귀하의 답변을 문제 풀이 역량과 사고 과정 설명 역량을 바탕으로 분석하여 종합적으로 판단했습니다.</p>
+            <p>문제 풀이 역량은 주어진 문제를 이해하고, 논리적인 사고를 통해 해결 방안을 코드로 구현하는 능력을 의미하며, 정답률과 풀이 속도를 기준으로 평가합니다.</p>
+            <p>사고 과정 설명 능력은 문제 접근 방식과 사고의 전개 과정을 명확히 설명하는 역량을 의미하며, 논리성, 구조화, 명료성, 창의성을 기준으로 평가합니다.</p>
+            <p>AI 면접관의 평가 결과, 귀하께서는 <b>코딩 테스트에서 상위 20% 수준의 빠른 문제 풀이 속도와 높은 정답률</b>을 보여주셨습니다. 주어진 문제를 정확히 이해하고 <b>논리적인 사고를 바탕으로 효율적인 코드를 구현</b>하였으며, 사고 과정 설명에서도 <b>논리성과 구조화, 창의성</b>이 돋보였습니다.</p>
+            <p>이러한 점들을 근거로, AI 면접관은 귀하를 <b>합격 기준 충족자</b>로 판정하였습니다. 따라서 귀하는 다음 단계 면접 평가로 이어질 기회를 얻게 되셨습니다.</p>
+            <p>다시 한 번 합격을 축하드립니다.</p>
+            <br>
+            <p>감사합니다.<br>Aivora AI 면접관 드림</p>
+            <img src="images/aivora-logo.webp" alt="Aivora Logo" class="aivora-logo">
+        </div>
+    </div>
+
+    <div id="result-page-hard-fail" class="page hidden result-page info-page-layout">
+        <div class="content-box">
+            <h1>1차 AI 면접 평가에서 아쉽게 <span>불합격</span> 판정을 받으셨습니다.</h1>
+            <p>안녕하세요. 아쉽게도 귀하는 1차 AI 면접 평가에서 불합격하셨습니다. 이번 평가에서 AI 면접관은 귀하의 답변을 문제 풀이 역량과 사고 과정 설명 역량을 바탕으로 분석하여 종합적으로 판단했습니다.</p>
+            <p>문제 풀이 역량은 주어진 문제를 이해하고, 논리적인 사고를 통해 해결 방안을 코드로 구현하는 능력을 의미하며, 정답률과 풀이 속도를 기준으로 평가합니다.</p>
+            <p>사고 과정 설명 능력은 문제 접근 방식과 사고의 전개 과정을 명확히 설명하는 역량을 의미하며, 논리성, 구조화, 명료성, 창의성을 기준으로 평가합니다.</p>
+            <p>AI 면접관의 평가 결과, 귀하께서는 <b>코딩 테스트에서 하위 20% 수준의 풀이 속도와 정답률</b>을 기록하였습니다. 주어진 문제를 충분히 이해하지 못하고 <b>논리적 사고가 부족하여 효율적인 코드를 구현하지 못했으며</b>, 사고 과정 설명에서도 <b>논리성, 구조화, 창의성이 다소 부족한 것</b>으로 평가되었습니다.</p>
+            <p>이러한 점들을 근거로, AI 면접관은 귀하를 <b>합격 기준 미충족자</b>로 판정하였습니다. 비록 이번에는 아쉬운 결과를 받으셨지만, 평가에서 드러난 부분들을 보완한다면 향후 더 좋은 성과를 거두실 수 있을 것이라 기대됩니다.</p>
             <p>이번 면접에 참여해주셔서 감사드리며, 귀하의 발전을 응원합니다.</p>
             <br>
             <p>감사합니다.<br>Aivora AI 면접관 드림</p>
