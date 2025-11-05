@@ -69,7 +69,13 @@
 
         /* --- 답변 준비 페이지 --- */
         #prep-page .content-box { background-color: #f8f9fa; border: 1px solid var(--border-color); min-height: 300px; display: flex; flex-direction: column; justify-content: center; }
-        #prep-question { font-size: 1.5em; line-height: 1.6; margin-bottom: 30px; }
+        #prep-question { 
+            font-size: 1.5em; 
+            line-height: 1.8; 
+            margin-bottom: 30px; 
+            word-break: keep-all;
+            word-wrap: break-word;
+        }
         #prep-timer-text { font-size: 1.2em; color: var(--light-text); }
         #prep-timer-text span { color: var(--primary-blue); font-weight: bold; }
 
@@ -190,11 +196,12 @@
             flex: 1; 
             display: flex; 
             flex-direction: column; 
-            min-height: 300; 
+            min-height: 0; 
         }
         #code-editor { 
             width: 100%; 
             flex-grow: 1; 
+            min-height: 400px;
             font-family: monospace; 
             font-size: 14px; 
             padding: 20px; 

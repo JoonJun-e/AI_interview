@@ -29,7 +29,7 @@ const hardSkillQuestions = [
     
     // 코딩 문제 2
     { type: 'coding', text: '각에서 0도 초과 90도 미만은 예각, 90도는 직각, 90도 초과 180도 미만은 둔각 180도는 평각으로 분류합니다.\n각 angle이 매개변수로 주어질 때 예각일 때 1, 직각일 때 2, 둔각일 때 3, 평각일 때 4를 return하도록 solution 함수를 완성해주세요.\n\n- 예각 : 0 < angle < 90\n- 직각 : angle = 90\n- 둔각 : 90 < angle < 180\n- 평각 : angle = 180\n\n제한사항:\n0 < angle ≤ 180\nangle은 정수입니다.', prepTime: 5, answerTime: 90 },
-    { type: 'video', text: '작성하신 solution 함수에서 조건문 구조가 어떻게 동작하는지 설명해주세요.\n그리고 코드가 올바르게 동작하는지 검증하기위해 어떻게 하실건지 예시를 들어 설명해주세요.', prepTime: 5, answerTime: 60, reviewCode: true },
+    { type: 'video', text: '작성하신 solution 함수에서 조건문 구조가 어떻게 동작하는지 설명해주세요.\n그리고 코드가 올바르게 동작하는지 검증하기위해 어떻게 하실건지 예시를 들어 설명해주세요.\n ', prepTime: 5, answerTime: 60, reviewCode: true },
 
     // 코딩 문제 3
     { type: 'coding', text: '자연수 N이 주어지면, N의 각 자릿수의 합을 구해서 return 하는 solution 함수를 만들어 주세요.\n예를들어 N = 123이면 1 + 2 + 3 = 6을 return 하면 됩니다.\n\n제한사항:\nN의 범위 : 100,000,000 이하의 자연수', prepTime: 5, answerTime: 120 },
