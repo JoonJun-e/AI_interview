@@ -23,7 +23,7 @@
             min-height: 100vh; 
             box-sizing: border-box; 
         }
-        .page { width: 100%; max-width: 800px; text-align: center; }
+        .page { width: 100%; max-width: 900px; text-align: center; }
         .hidden { display: none !important; }
         .content-box { 
             background-color: #fff; 
@@ -47,6 +47,7 @@
         button:hover { background-color: #357abd; transform: translateY(-2px); }
         video { transform: scaleX(-1); background-color: #000; border-radius: 12px; }
 
+        /* --- 시작 페이지 --- */
         .start-page-container { max-width: 700px; margin: 0 auto; }
         .header-logos { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
         .header-logos img { max-height: 40px; }
@@ -54,35 +55,52 @@
         .start-form label { width: 120px; font-size: 18px; font-weight: bold; text-align: left; }
         .start-form input, .start-form select { flex-grow: 1; padding: 15px 20px; border: 1px solid var(--border-color); border-radius: 30px; font-size: 16px; }
         
-        .info-page-layout .content-box { text-align: left; }
-        .info-page-layout h1 { font-size: 24px; border-bottom: 2px solid var(--primary-blue); padding-bottom: 15px; margin-top: 0; }
-        .info-page-layout h1 span { color: var(--primary-blue); }
-        .info-page-layout p { line-height: 1.8; }
+        /* --- 안내 페이지 --- */
+        .text-box { text-align: left; line-height: 1.8; }
 
+        /* --- 장치 확인 페이지 정렬 --- */
         #mic-check-ui { display: flex; flex-direction: column; align-items: center; gap: 15px; margin-top: 20px; }
         #mic-check-ui h4, #mic-check-ui p { margin: 0; color: var(--light-text); }
         #mic-visualizer { border: 1px solid var(--border-color); border-radius: 4px; }
 
-        #prep-page .content-box { background-color: #fff; }
-        #prep-question { font-size: 1.5em; line-height: 1.6; margin-bottom: 30px; }
-        #prep-timer-text { font-size: 1.2em; color: var(--light-text); }
-        #prep-timer-text span { color: var(--primary-blue); font-weight: bold; }
+        /* --- 답변 준비 페이지 --- */
+        #prep-page .content-box { background-color: #e9e9e9; padding: 60px 40px; min-height: 400px; display: flex; flex-direction: column; justify-content: center; }
+        #prep-question { font-size: 1.5em; line-height: 1.6; flex-grow: 1; display: flex; align-items: center; justify-content: center; }
+        #prep-timer-text { font-size: 1.2em; }
+        #prep-timer-text span { color: #ff4d4d; font-weight: bold; }
 
+        /* --- 면접 진행 페이지 --- */
         #interview-page .content-box { padding: 20px; overflow: hidden; }
+        #interview-flex-container { display: flex; gap: 20px; align-items: flex-start; }
+        #interview-main-area { flex: 1.5; display: flex; flex-direction: column; }
+        #code-review-area { flex: 1; text-align: left; background-color: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); max-height: 400px; overflow-y: auto; white-space: pre-wrap; font-family: monospace; font-size: 14px; display: none; }
+        #code-review-area.visible { display: block; }
         #interview-timer-display { background-color: #e9ecef; color: var(--dark-text); padding: 8px 16px; font-size: 1.1em; font-weight: bold; border-radius: 20px; width: fit-content; margin: 0 auto 20px; }
         #interview-question-bar { background-color: #f8f9fa; border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; font-size: 1em; line-height: 1.6; text-align: left; margin-bottom: 20px; }
         #webcam-interview { width: 100%; height: auto; border-radius: 12px; }
-        #submit-answer-btn { border-radius: 25px; padding: 12px 30px; font-weight: bold; box-shadow: 0 4px 10px rgba(74, 144, 226, 0.4); }
 
+        /* --- 코딩 문제 페이지 --- */
+        #coding-page { max-width: 1200px; }
+        #coding-timer-display { font-size: 1.5em; font-weight: bold; margin-bottom: 20px; color: var(--primary-blue); text-align: left; }
+        .coding-layout { display: flex; gap: 30px; align-items: flex-start; height: 700px; }
+        .left-panel { flex: 2; display: flex; flex-direction: column; gap: 20px; height: 100%; }
+        .right-panel { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 20px; }
+        .problem-description { flex: 0 0 40%; background-color: #f8f9fa; padding: 25px; border-radius: 12px; border: 1px solid var(--border-color); overflow-y: auto; text-align: left; }
+        .editor-area { flex: 1; display: flex; flex-direction: column; }
+        #code-editor { width: 100%; flex-grow: 1; font-family: monospace; font-size: 14px; padding: 20px; border: 1px solid var(--border-color); border-radius: 12px; box-sizing: border-box; resize: none; line-height: 1.5; }
+        #webcam-coding { width: 100%; max-width: 400px; height: auto; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+
+        /* --- 답변 저장 페이지 --- */
         #saving-page .content-box { min-height: 400px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
         #saving-page .spinner { border: 8px solid #e9ecef; border-top: 8px solid var(--primary-blue); border-radius: 50%; width: 80px; height: 80px; animation: spin 1.2s linear infinite; margin-bottom: 30px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         #saving-page .aivora-logo { position: absolute; bottom: 30px; right: 30px; height: 30px; }
-        
-        /* ✅ [추가] 비디오 재생 페이지 스타일 */
-        #video-page .content-box { padding: 20px; }
+
+        /* --- 비디오 재생 페이지 --- */
+        #video-page .content-box { padding: 30px; }
         #post-interview-player { width: 100%; max-width: 720px; border-radius: 12px; transform: scaleX(1); }
 
+        /* --- 최종 결과 페이지 --- */
         .result-page .content-box { text-align: left; }
         .result-page h1 { font-size: 24px; border-bottom: 2px solid var(--primary-blue); padding-bottom: 15px; margin-top: 0; }
         .result-page h1 span { color: var(--primary-blue); }
@@ -97,15 +115,22 @@
                 <img src="images/hailab-logo.webp" alt="Human-AI Interaction Laboratory">
                 <img src="https://www.skku.edu/_res/skku/img/skku_s.png" alt="Sungkyunkwan University">
             </div>
-            <form id="start-form" class="start-form">
-                <div class="form-row">
-                    <label for="name">성명</label>
-                    <input type="text" id="name" placeholder="성함을 입력해주세요" required>
-                </div>
-                <div class="form-row">
-                    <label for="user-id">ID</label>
-                    <input type="text" id="user-id" placeholder="메일로 안내받은 ID 입력" required>
-                </div>
+            <h1>AI 면접 유형 선택</h1>
+            <p>참여하실 면접 유형을 선택해주세요.</p>
+            <button id="soft-skill-btn">소프트 스킬 면접 시작</button>
+            <button id="hard-skill-btn">하드 스킬 면접 시작</button>
+        </div>
+    </div>
+
+    <div id="user-info-page" class="page hidden">
+        <div class="content-box user-info-container">
+            <div class="header-logos">
+                <img src="images/hailab-logo.webp" alt="HAI Lab Logo">
+                <img src="https://www.skku.edu/_res/skku/img/skku_s.png" alt="SKKU Logo">
+            </div>
+            <form id="user-info-form" class="start-form">
+                <div class="form-row"><label for="name">성명</label><input type="text" id="name" placeholder="성함을 입력해주세요" required></div>
+                <div class="form-row"><label for="user-id">ID</label><input type="text" id="user-id" placeholder="메일로 안내받은 ID 입력" required></div>
                 <div class="form-row">
                     <label for="condition-select">테스트 조건</label>
                     <select id="condition-select">
@@ -119,7 +144,7 @@
     </div>
 
     <div id="guide-page" class="page hidden info-page-layout">
-        <div class="content-box">
+        <div class="content-box text-box">
             <h1>실험 <span>안내</span></h1>
             <p>안녕하세요, 반갑습니다!</p>
             <p>여러분은 지금부터 Aivora에서 직접 제작한 AI 면접 시스템을 체험하시게 됩니다.</p>
@@ -148,17 +173,44 @@
     <div id="prep-page" class="page hidden">
         <div class="content-box">
             <div id="prep-question"></div>
-            <div id="prep-timer-text"><span>25초 뒤</span> 답변을 시작해주세요</div>
+            <div id="prep-timer-text"><span>5초 뒤</span> 답변을 시작해주세요</div>
         </div>
     </div>
 
     <div id="interview-page" class="page hidden">
         <div class="content-box">
-            <div id="interview-timer-display">01:00</div>
-            <div id="interview-question-bar"></div>
-            <video id="webcam-interview" autoplay playsinline muted></video>
+            <div id="interview-flex-container">
+                <div id="code-review-area">
+                    <h4>[작성하신 코드]</h4>
+                    <pre id="reviewed-code"></pre>
+                </div>
+                <div id="interview-main-area">
+                    <div id="interview-timer-display">01:00</div>
+                    <div id="interview-question-bar"></div>
+                    <video id="webcam-interview" autoplay playsinline muted></video>
+                </div>
+            </div>
         </div>
         <button id="submit-answer-btn">답변 완료</button>
+    </div>
+
+    <div id="coding-page" class="page hidden">
+        <div class="coding-layout">
+            <div class="left-panel">
+                <div id="coding-timer-display">05:00</div>
+                <div class="problem-description">
+                    <h3 id="coding-question-title" style="color: var(--primary-blue); margin-top: 0;"></h3>
+                    <p id="coding-question-text" style="line-height: 1.6; white-space: pre-wrap;"></p>
+                </div>
+                <div class="editor-area">
+                    <textarea id="code-editor" placeholder="이곳에 코드를 작성하세요..." spellcheck="false"></textarea>
+                </div>
+            </div>
+            <div class="right-panel">
+                <video id="webcam-coding" autoplay playsinline muted></video>
+                <button id="submit-code-btn" style="width: 100%; padding: 15px;">제출하기</button>
+            </div>
+        </div>
     </div>
     
     <div id="saving-page" class="page hidden">
@@ -173,8 +225,8 @@
     <div id="video-page" class="page hidden">
         <div class="content-box">
             <h2>결과를 분석하는 동안 잠시 영상을 시청해주세요.</h2>
-            <video id="post-interview-player" autoplay controls>
-                <source src="https://storage.googleapis.com/ai-interview-skku-is-2025/final-video.mp4" type="video/mp4">
+            <video id="post-interview-player" controls>
+                <source src="https://storage.googleapis.com/ai-interview-skku-is-2025/final_video.mp4" type="video/mp4">
                 브라우저가 비디오 태그를 지원하지 않습니다.
             </video>
         </div>
@@ -193,6 +245,7 @@
             <img src="images/aivora-logo.webp" alt="Aivora Logo" class="aivora-logo">
         </div>
     </div>
+
     <div id="result-page-fail" class="page hidden result-page">
         <div class="content-box">
             <h1>1차 AI 면접 평가에서 아쉽게 <span>불합격</span> 판정을 받으셨습니다.</h1>
@@ -207,6 +260,7 @@
         </div>
     </div>
     
+    <div id="toast" class="hidden"></div>
     <script src="script.js"></script>
 </body>
 </html>

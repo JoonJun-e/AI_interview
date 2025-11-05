@@ -6,50 +6,93 @@ let localStream, audioContext, analyser, mediaRecorder;
 let recordedChunks = [];
 let timerInterval, prepTimerInterval;
 let currentQuestionIndex = 0;
+let interviewType = '';
+let lastSubmittedCode = "";
 
-// --- 질문 데이터 (테스트용 3초) ---
-const questions = [
-    { text: '1분동안 자기 소개를 해주세요.', prepTime: 3, answerTime: 60 },
-    { text: '당신은 팀 프로젝트에서 중요한 결정을 내려야 하는 상황입니다. 프로젝트 마감 기한은 다가오는데, 두 명의 동료가 서로 다른 의견을 내고 있습니다. 한 명은 새로운 방식을 시도해야 한다고 주장하고, 다른 한 명은 검증된 기존 방식을 고수해야 한다고 합니다. 이 상황에서 팀원들을 어떻게 설득하고, 프로젝트를 어떤 방향으로 이끌어가시겠습니까? 구체적으로 어떤 말을 할지 설명해주세요.', prepTime: 3, answerTime: 90 },
-    { text: '프로젝트에서 당신이 내린 결정이 실패했습니다. 반대하던 일부 팀원들이 당신을 비난하고 프로젝트에 지속적으로 참여하기를 거부합니다. 이 상황에서 팀원들에게 어떻게 설명하고, 책임을 지시겠습니까? 당신을 비난하고 참여를 거부하는 팀원들을 어떻게 설득하여 참여를 유도하시겠습니까? 구체적으로 어떤 말을 할지 설명해주세요.', prepTime: 3, answerTime: 90 },
-    { text: '한 팀원이 ‘항상 일이 불공평하게 배분된다’고 회의에서 불만을 강하게 드러냈습니다. 다른 팀원들은 그 상황을 불편해하였고, 분위기는 냉각되었습니다. 당신은 이 상황에서 회의를 어떻게 수습하고, 불만을 제기한 동료와 다른 팀원들의 관계를 어떻게 회복시키겠습니까? 구체적으로 말씀해주세요.', prepTime: 3, answerTime: 90 },
-    { text: '언뜻 사태가 마무리된 듯 해 보였으나, 회의 이후에도 팀원들 사이에 감정의 골이 남아있습니다. 팀 전체의 사기를 유지하면서도 불만을 제기한 팀원의 목소리를 존중하려면 어떻게 하면 좋을까요? 갈등이 다시 표면화되지 않도록 어떤 대화나 행동을 통해 관계 회복을 이끌어내실지 구체적으로 말씀해주세요.', prepTime: 3, answerTime: 90 },
-    { text: '마케팅 부서에서 사실을 과장한 광고 문구를 쓰자는 제안이 나왔습니다. 이 방식은 매출 증대 효과가 있을 수 있지만, 고객 신뢰를 잃을 위험도 있습니다. 이 회의에서 당신은 마케팅 부서 직원들을 어떻게 설득하겠습니까? 어떻게 말을 할지 구체적으로 설명해주세요.', prepTime: 3, answerTime: 90 },
-    { text: '마케팅 부서 직원들은 ‘다른 회사에서도 다들 그렇게 하니까 조금 과장해도 괜찮다’고 하며 여전히 과장된 문구 사용을 주장합니다. 당신은 회사의 단기 성과와 고객 신뢰 사이에서 균형을 어떻게 잡으시겠습니까? 당신이라면 어떻게 말을 하고, 행동할 것인지 구체적으로 설명해주세요.', prepTime: 3, answerTime: 90 },
+// --- 질문 데이터 (테스트용 대기시간 5초) ---
+const softSkillQuestions = [
+    { type: 'video', text: '1분동안 자기 소개를 해주세요.', prepTime: 5, answerTime: 60 },
+    { type: 'video', text: '당신은 팀 프로젝트에서 중요한 결정을 내려야 하는 상황입니다. 프로젝트 마감 기한은 다가오는데, 두 명의 동료가 서로 다른 의견을 내고 있습니다. 한 명은 새로운 방식을 시도해야 한다고 주장하고, 다른 한 명은 검증된 기존 방식을 고수해야 한다고 합니다. 이 상황에서 팀원들을 어떻게 설득하고, 프로젝트를 어떤 방향으로 이끌어가시겠습니까? 구체적으로 어떤 말을 할지 설명해주세요.', prepTime: 5, answerTime: 90 },
+    { type: 'video', text: '프로젝트에서 당신이 내린 결정이 실패했습니다. 반대하던 일부 팀원들이 당신을 비난하고 프로젝트에 지속적으로 참여하기를 거부합니다. 이 상황에서 팀원들에게 어떻게 설명하고, 책임을 지시겠습니까? 당신을 비난하고 참여를 거부하는 팀원들을 어떻게 설득하여 참여를 유도하시겠습니까? 구체적으로 어떤 말을 할지 설명해주세요.', prepTime: 5, answerTime: 90 },
+    { type: 'video', text: '한 팀원이 ‘항상 일이 불공평하게 배분된다’고 회의에서 불만을 강하게 드러냈습니다. 다른 팀원들은 그 상황을 불편해하였고, 분위기는 냉각되었습니다. 당신은 이 상황에서 회의를 어떻게 수습하고, 불만을 제기한 동료와 다른 팀원들의 관계를 어떻게 회복시키겠습니까? 구체적으로 말씀해주세요.', prepTime: 5, answerTime: 90 },
+    { type: 'video', text: '언뜻 사태가 마무리된 듯 해 보였으나, 회의 이후에도 팀원들 사이에 감정의 골이 남아있습니다. 팀 전체의 사기를 유지하면서도 불만을 제기한 팀원의 목소리를 존중하려면 어떻게 하면 좋을까요? 갈등이 다시 표면화되지 않도록 어떤 대화나 행동을 통해 관계 회복을 이끌어내실지 구체적으로 말씀해주세요.', prepTime: 5, answerTime: 90 },
+    { type: 'video', text: '마케팅 부서에서 사실을 과장한 광고 문구를 쓰자는 제안이 나왔습니다. 이 방식은 매출 증대 효과가 있을 수 있지만, 고객 신뢰를 잃을 위험도 있습니다. 이 회의에서 당신은 마케팅 부서 직원들을 어떻게 설득하겠습니까? 어떻게 말을 할지 구체적으로 설명해주세요.', prepTime: 5, answerTime: 90 },
+    { type: 'video', text: '마케팅 부서 직원들은 ‘다른 회사에서도 다들 그렇게 하니까 조금 과장해도 괜찮다’고 하며 여전히 과장된 문구 사용을 주장합니다. 당신은 회사의 단기 성과와 고객 신뢰 사이에서 균형을 어떻게 잡으시겠습니까? 당신이라면 어떻게 말을 하고, 행동할 것인지 구체적으로 설명해주세요.', prepTime: 5, answerTime: 90 },
+];
+
+const hardSkillQuestions = [
+    { type: 'video', text: '1분동안 자기 소개를 해주세요.', prepTime: 5, answerTime: 60 },
+    
+    // 코딩 문제 1
+    { type: 'coding', text: '정수 num1, num2가 매개변수 주어집니다. num1과 num2를 곱한 값을 return 하도록 solution 함수를 완성해주세요.\n\n제한사항:\n0 ≤ num1 ≤ 100\n0 ≤ num2 ≤ 100\n\ndef solution(num1, num2):\n    return num1 * num2', prepTime: 5, answerTime: 90 },
+    { type: 'video', text: '방금 작성한 solution 함수에서 각 줄이 어떤 역할을 하는지, 함수의 구조를 설명해주세요.\n함수 구조, 매개변수, return 구문을 중심으로 답변해주세요.\n\n그리고 본인의 풀이가 올바른지 어떻게 검증할 수 있나요?\n예를 들어 어떤 입력 값을 테스트하고, 그 결과가 어떻게 나와야 하는지 설명해주세요.', prepTime: 5, answerTime: 60, reviewCode: true },
+    
+    // 코딩 문제 2
+    { type: 'coding', text: '각에서 0도 초과 90도 미만은 예각, 90도는 직각, 90도 초과 180도 미만은 둔각 180도는 평각으로 분류합니다.\n각 angle이 매개변수로 주어질 때 예각일 때 1, 직각일 때 2, 둔각일 때 3, 평각일 때 4를 return하도록 solution 함수를 완성해주세요.\n\n- 예각 : 0 < angle < 90\n- 직각 : angle = 90\n- 둔각 : 90 < angle < 180\n- 평각 : angle = 180\n\n제한사항:\n0 < angle ≤ 180\nangle은 정수입니다.', prepTime: 5, answerTime: 90 },
+    { type: 'video', text: '작성하신 solution 함수에서 조건문 구조가 어떻게 동작하는지 설명해주세요.\n그리고 코드가 올바르게 동작하는지 검증하기위해 어떻게 하실건지 예시를 들어 설명해주세요.', prepTime: 5, answerTime: 60, reviewCode: true },
+
+    // 코딩 문제 3
+    { type: 'coding', text: '자연수 N이 주어지면, N의 각 자릿수의 합을 구해서 return 하는 solution 함수를 만들어 주세요.\n예를들어 N = 123이면 1 + 2 + 3 = 6을 return 하면 됩니다.\n\n제한사항:\nN의 범위 : 100,000,000 이하의 자연수', prepTime: 5, answerTime: 90 },
+    { type: 'video', text: '작성하신 함수에서 자릿수를 더하는 과정이 어떻게 동작하는지 구체적으로 설명해주세요.\n그리고 만약 자릿수의 합이 아니라 자릿수의 곱을 구해야 한다면, 코드를 어떻게 바꾸실건지 설명할 건지 설명하시고, 코드가 올바르게 동작하는지 확인하기 위해 어떤 입력값을 테스트할건지 예시를 들어 설명해주세요.', prepTime: 5, answerTime: 60, reviewCode: true },
+
+    // 코딩 문제 4
+    { type: 'coding', text: 'JadenCase란 모든 단어의 첫 문자가 대문자이고, 그 외의 알파벳은 소문자인 문자열입니다. 단, 첫 문자가 알파벳이 아닐 때에는 이어지는 알파벳은 소문자로 쓰면 됩니다. (첫 번째 입출력 예 참고)\n문자열 s가 주어졌을 때, s를 JadenCase로 바꾼 문자열을 리턴하는 함수, solution을 완성해주세요.\n\n제한 조건:\ns는 길이 1 이상 200 이하인 문자열입니다.\ns는 알파벳과 숫자, 공백문자(" ")로 이루어져 있습니다.\n- 숫자는 단어의 첫 문자로만 나옵니다.\n- 숫자로만 이루어진 단어는 없습니다.\n- 공백문자가 연속해서 나올 수 있습니다.\n\n입출력 예:\ns: "3people unFollowed me" -> return: "3people Unfollowed Me"\ns: "for the last week" -> return: "For The Last Week"', prepTime: 5, answerTime: 120 },
+    { type: 'video', text: 'capitalize( ) 메서드를 쓸 수 있는데, 이 문제에서는 바로 쓰면 왜 안되는지 설명해주세요.\n그리고 다국어 문자열(예, 한글, 중국어)이 포함된 경우에는 어떻게 동작할까요?', prepTime: 5, answerTime: 60, reviewCode: true },
 ];
 
 // --- HTML 요소 캐싱 ---
 const pages = {
     start: document.getElementById('start-page'),
+    userInfo: document.getElementById('user-info-page'),
     guide: document.getElementById('guide-page'),
     deviceCheck: document.getElementById('device-check-page'),
     prep: document.getElementById('prep-page'),
     interview: document.getElementById('interview-page'),
+    coding: document.getElementById('coding-page'),
     saving: document.getElementById('saving-page'),
     video: document.getElementById('video-page'),
     resultPass: document.getElementById('result-page-pass'),
     resultFail: document.getElementById('result-page-fail'),
 };
 
-const startForm = document.getElementById('start-form');
+const startForm = document.getElementById('user-info-form');
 const guideNextBtn = document.getElementById('guide-next-btn');
 const startInterviewBtn = document.getElementById('start-interview-btn');
 const submitAnswerBtn = document.getElementById('submit-answer-btn');
+const submitCodeBtn = document.getElementById('submit-code-btn');
 const conditionSelect = document.getElementById('condition-select');
 
 const webcamCheck = document.getElementById('webcam-check');
 const webcamInterview = document.getElementById('webcam-interview');
+const webcamCoding = document.getElementById('webcam-coding');
 const micVisualizer = document.getElementById('mic-visualizer');
 const prepQuestion = document.getElementById('prep-question');
 const prepTimerText = document.getElementById('prep-timer-text').querySelector('span');
 const interviewTimerDisplay = document.getElementById('interview-timer-display');
 const interviewQuestionBar = document.getElementById('interview-question-bar');
+const codingTimerDisplay = document.getElementById('coding-timer-display');
+const codingQuestionTitle = document.getElementById('coding-question-title');
+const codingQuestionText = document.getElementById('coding-question-text');
+const codeEditor = document.getElementById('code-editor');
 const postInterviewPlayer = document.getElementById('post-interview-player');
+const codeReviewArea = document.getElementById('code-review-area');
+const reviewedCode = document.getElementById('reviewed-code');
+const toast = document.getElementById('toast');
 
 // --- 페이지 전환 ---
 function showPage(pageId) {
     Object.values(pages).forEach(page => page.classList.add('hidden'));
     pages[pageId].classList.remove('hidden');
+}
+
+function showToast(message) {
+    toast.textContent = message;
+    toast.classList.remove('hidden');
+    toast.classList.add('show');
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.classList.add('hidden'), 500);
+    }, 3000);
 }
 
 // --- 마이크 시각화 ---
@@ -98,28 +141,16 @@ async function setupDevices() {
     }
 }
 
-// --- ✅ [수정] 녹음 로직 (버그 수정본) ---
+// --- 녹음 로직 ---
 function startRecording(stream) {
-    if (!stream || !stream.active) {
-        alert("미디어 스트림이 활성화되지 않았습니다.");
-        return false;
-    }
+    if (!stream || !stream.active) return false;
     const audioTracks = stream.getAudioTracks();
-    if (audioTracks.length === 0) {
-        alert("오디오 트랙을 찾을 수 없습니다.");
-        return false;
-    }
+    if (audioTracks.length === 0) return false;
     const audioStream = new MediaStream(audioTracks);
     recordedChunks = [];
-    
-    const mimeTypes = ['audio/webm;codecs=opus', 'audio/webm'];
+    const mimeTypes = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4'];
     const supportedMimeType = mimeTypes.find(type => MediaRecorder.isTypeSupported(type));
-
-    if (!supportedMimeType) {
-        alert("지원되는 오디오 녹음 형식이 없습니다.");
-        return false;
-    }
-
+    if (!supportedMimeType) { alert("지원되는 오디오 녹음 형식이 없습니다."); return false; }
     try {
         mediaRecorder = new MediaRecorder(audioStream, { mimeType: supportedMimeType });
         mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
@@ -127,53 +158,84 @@ function startRecording(stream) {
         return true;
     } catch (error) {
         console.error("녹음 시작 오류:", error);
-        alert("녹음 시작 오류: " + error.message);
         return false;
     }
 }
 
 function stopRecording() {
     return new Promise(resolve => {
-        if (!mediaRecorder || mediaRecorder.state === "inactive") { resolve(new Blob(recordedChunks)); return; }
-        mediaRecorder.onstop = () => resolve(new Blob(recordedChunks));
+        if (!mediaRecorder || mediaRecorder.state === "inactive") { resolve(new Blob(recordedChunks, { type: 'audio/webm' })); return; }
+        mediaRecorder.onstop = () => resolve(new Blob(recordedChunks, { type: 'audio/webm' }));
         mediaRecorder.stop();
     });
 }
 
 // --- 면접 흐름 제어 ---
 function startNextQuestion() {
+    const questions = (interviewType === 'hard') ? hardSkillQuestions : softSkillQuestions;
     if (currentQuestionIndex >= questions.length) {
         finishInterview();
         return;
     }
     const question = questions[currentQuestionIndex];
-    showPage('prep');
-    prepQuestion.textContent = question.text;
-    let prepTimeLeft = question.prepTime;
-    prepTimerText.textContent = `${prepTimeLeft}초 뒤`;
-    clearInterval(prepTimerInterval);
-    prepTimerInterval = setInterval(() => {
-        prepTimeLeft--;
+
+    if (question.type === 'video') {
+        showPage('prep');
+        prepQuestion.textContent = question.text;
+        let prepTimeLeft = question.prepTime;
         prepTimerText.textContent = `${prepTimeLeft}초 뒤`;
-        if (prepTimeLeft <= 0) {
-            clearInterval(prepTimerInterval);
-            startAnswer();
+        
+        if (question.reviewCode && lastSubmittedCode) {
+            codeReviewArea.classList.add('visible');
+            reviewedCode.textContent = lastSubmittedCode;
+        } else {
+            codeReviewArea.classList.remove('visible');
         }
-    }, 1000);
+
+        clearInterval(prepTimerInterval);
+        prepTimerInterval = setInterval(() => {
+            prepTimeLeft--;
+            prepTimerText.textContent = `${prepTimeLeft}초 뒤`;
+            if (prepTimeLeft <= 0) {
+                clearInterval(prepTimerInterval);
+                startAnswer();
+            }
+        }, 1000);
+    } else if (question.type === 'coding') {
+        showPage('coding');
+        webcamCoding.srcObject = localStream;
+
+        let questionNum = 0;
+        for(let i=0; i<=currentQuestionIndex; i++) { if(questions[i].type === 'coding') questionNum++; }
+        codingQuestionTitle.textContent = `코딩 테스트 ${questionNum}`;
+        codingQuestionText.textContent = question.text;
+        codeEditor.value = '';
+
+        let answerTimeLeft = question.answerTime;
+        const updateTimer = () => {
+            const minutes = String(Math.floor(answerTimeLeft / 60)).padStart(2, '0');
+            const seconds = String(answerTimeLeft % 60).padStart(2, '0');
+            codingTimerDisplay.textContent = `${minutes}:${seconds}`;
+            answerTimeLeft--;
+            if (answerTimeLeft < 0) {
+                submitCode();
+            }
+        };
+        clearInterval(timerInterval);
+        updateTimer();
+        timerInterval = setInterval(updateTimer, 1000);
+    }
 }
 
-// ✅ [수정] 타이머 1초 지연 버그 수정
 function startAnswer() {
+    const questions = (interviewType === 'hard') ? hardSkillQuestions : softSkillQuestions;
     const question = questions[currentQuestionIndex];
     showPage('interview');
     interviewQuestionBar.textContent = question.text;
     webcamInterview.srcObject = localStream;
-    if (!startRecording(localStream)) {
-        return;
-    }
-    
-    let answerTimeLeft = question.answerTime;
+    if (!startRecording(localStream)) return;
 
+    let answerTimeLeft = question.answerTime;
     const updateTimer = () => {
         const minutes = String(Math.floor(answerTimeLeft / 60)).padStart(2, '0');
         const seconds = String(answerTimeLeft % 60).padStart(2, '0');
@@ -183,16 +245,28 @@ function startAnswer() {
             submitAnswer();
         }
     };
-    
     clearInterval(timerInterval);
-    updateTimer(); // 1초 기다리지 않고 타이머를 즉시 1회 실행
-    timerInterval = setInterval(updateTimer, 1000); // 그 후 1초마다 실행
+    updateTimer();
+    timerInterval = setInterval(updateTimer, 1000);
 }
 
 async function submitAnswer() {
     clearInterval(timerInterval);
     const audioBlob = await stopRecording();
     userAnswers.push(audioBlob);
+    showSavingAndNext();
+}
+
+function submitCode() {
+    clearInterval(timerInterval);
+    const code = codeEditor.value;
+    lastSubmittedCode = code;
+    const codeBlob = new Blob([code], { type: 'text/plain' });
+    userAnswers.push(codeBlob);
+    showSavingAndNext();
+}
+
+function showSavingAndNext() {
     showPage('saving');
     setTimeout(() => {
         currentQuestionIndex++;
@@ -200,9 +274,13 @@ async function submitAnswer() {
     }, 2500);
 }
 
-// ✅ [수정] 면접 종료 시 비디오 재생
 async function finishInterview() {
     showPage('saving');
+    
+    // 카메라/마이크 끄기
+    if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+    }
     
     const answersPayload = await Promise.all(
         userAnswers.map(blob => blobToBase64(blob))
@@ -210,14 +288,12 @@ async function finishInterview() {
     
     try {
         await sendDataToServer(answersPayload);
-        
         showPage('video');
         postInterviewPlayer.load();
-        postInterviewPlayer.play();
-
+        postInterviewPlayer.play().catch(e => console.log("Autoplay blocked:", e));
     } catch (error) {
         alert("데이터 저장에 실패했습니다: " + error.message);
-        showPage('deviceCheck');
+        window.location.reload();
     }
 }
 
@@ -232,25 +308,32 @@ function blobToBase64(blob) {
 }
 
 async function sendDataToServer(answersPayload) {
-    const payload = { userInfo: userData, answers: answersPayload };
+    const payload = { userInfo: userData, answers: answersPayload, interviewType: interviewType };
     const response = await fetch('/api/evaluate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
     });
-
     if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.details || errorData.error || 'API 호출에 실패했습니다.');
+        throw new Error(errorData.details || errorData.error || 'API 호출 실패');
     }
-    
     return await response.json();
 }
 
 // --- 이벤트 리스너 설정 ---
-window.addEventListener('load', () => {
-    showPage('start');
+window.addEventListener('load', () => showPage('start'));
+
+document.getElementById('soft-skill-btn').addEventListener('click', () => {
+    interviewType = 'soft';
+    showPage('userInfo');
 });
+
+document.getElementById('hard-skill-btn').addEventListener('click', () => {
+    interviewType = 'hard';
+    showPage('userInfo');
+});
+
 startForm.addEventListener('submit', e => {
     e.preventDefault();
     userData.name = document.getElementById('name').value;
@@ -258,14 +341,16 @@ startForm.addEventListener('submit', e => {
     userData.testCondition = conditionSelect.value;
     showPage('guide');
 });
+
 guideNextBtn.addEventListener('click', () => {
     showPage('deviceCheck');
     setTimeout(setupDevices, 100);
 });
+
 startInterviewBtn.addEventListener('click', startNextQuestion);
 submitAnswerBtn.addEventListener('click', submitAnswer);
+submitCodeBtn.addEventListener('click', submitCode);
 
-// ✅ [추가] 비디오 재생이 끝나면 최종 결과 페이지 표시
 postInterviewPlayer.addEventListener('ended', () => {
     const condition = userData.testCondition;
     if (condition === 'pass') {
