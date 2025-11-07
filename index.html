@@ -69,12 +69,13 @@
 
         /* --- 답변 준비 페이지 --- */
         #prep-page .content-box { background-color: #f8f9fa; border: 1px solid var(--border-color); min-height: 300px; display: flex; flex-direction: column; justify-content: center; }
-        #prep-question { 
-            font-size: 1.5em; 
-            line-height: 1.8; 
-            margin-bottom: 30px; 
+        #prep-question {
+            font-size: 1.1em;
+            line-height: 1.8;
+            margin-bottom: 30px;
             word-break: keep-all;
             word-wrap: break-word;
+            white-space: pre-wrap;
         }
         #prep-timer-text { font-size: 1.2em; color: var(--light-text); }
         #prep-timer-text span { color: var(--primary-blue); font-weight: bold; }
@@ -112,15 +113,16 @@
             flex-direction: column;
             gap: 20px;
         }
-        #interview-question-bar { 
-            background-color: #f8f9fa; 
-            border: 1px solid var(--border-color); 
-            border-radius: 12px; 
-            padding: 25px; 
-            font-size: 1.1em; 
-            line-height: 1.6; 
-            text-align: left; 
+        #interview-question-bar {
+            background-color: #f8f9fa;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 25px;
+            font-size: 1.1em;
+            line-height: 1.6;
+            text-align: left;
             flex-shrink: 0;
+            white-space: pre-wrap;
         }
         #code-review-area { 
             flex-grow: 1; 
