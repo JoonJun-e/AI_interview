@@ -246,6 +246,16 @@
 
         #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background-color: #e74c3c; color: white; padding: 16px; border-radius: 8px; z-index: 1000; opacity: 0; transition: opacity 0.5s, bottom 0.5s; }
         #toast.show { opacity: 1; bottom: 50px; }
+
+        /* --- 테스트 모드 토글 --- */
+        .test-mode-toggle { display: flex; align-items: center; justify-content: space-between; background-color: #f8f9fa; padding: 15px 20px; border-radius: 8px; border: 1px solid var(--border-color); margin-top: 20px; }
+        .test-mode-toggle label { font-size: 16px; font-weight: 500; color: var(--dark-text); margin: 0; }
+        .test-mode-toggle .toggle-switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+        .test-mode-toggle .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .test-mode-toggle .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
+        .test-mode-toggle .toggle-slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        .test-mode-toggle input:checked + .toggle-slider { background-color: var(--primary-blue); }
+        .test-mode-toggle input:checked + .toggle-slider:before { transform: translateX(26px); }
     </style>
 </head>
 <body>
@@ -256,10 +266,12 @@
                 <img src="images/hailab-logo.webp" alt="Human-AI Interaction Laboratory">
                 <img src="https://www.skku.edu/_res/skku/img/skku_s.png" alt="Sungkyunkwan University">
             </div>
-            <h1>AI 면접 유형 선택</h1>
-            <p>참여하실 면접 유형을 선택해주세요.</p>
-            <button id="soft-skill-btn">소프트 스킬 면접 시작</button>
-            <button id="hard-skill-btn">하드 스킬 면접 시작</button>
+            <h1>테스트 모드: 면접 유형 및 결과 선택</h1>
+            <p>테스트할 면접 유형과 결과를 선택해주세요.</p>
+            <button id="soft-pass-btn" style="background-color: #27ae60;">소프트 스킬 - 합격</button>
+            <button id="soft-fail-btn" style="background-color: #e74c3c;">소프트 스킬 - 불합격</button>
+            <button id="hard-pass-btn" style="background-color: #27ae60;">하드 스킬 - 합격</button>
+            <button id="hard-fail-btn" style="background-color: #e74c3c;">하드 스킬 - 불합격</button>
         </div>
     </div>
 
@@ -272,13 +284,6 @@
             <form id="user-info-form" class="user-info-form">
                 <div class="form-row"><label for="name">성명</label><input type="text" id="name" placeholder="성함을 입력해주세요" required></div>
                 <div class="form-row"><label for="user-id">ID</label><input type="text" id="user-id" placeholder="메일로 안내받은 ID 입력" required></div>
-                <div class="form-row">
-                    <label for="condition-select">테스트 조건</label>
-                    <select id="condition-select">
-                        <option value="pass">합격 시나리오</option>
-                        <option value="fail">불합격 시나리오</option>
-                    </select>
-                </div>
                 <button type="submit">실험 참여</button>
             </form>
         </div>
@@ -289,15 +294,16 @@
         <div class="content-box">
             <h1>실험 <span>안내</span></h1>
             <p>안녕하세요, 반갑습니다!</p>
-            <p>여러분은 지금부터 Aivora에서 직접 제작한 AI 면접 시스템을 체험하시게 됩니다. 이 시스템은 실제 채용 과정에서 활용될 수 있도록 저희 Aivora가 직접 설계한 면접 프로그램입니다. <strong style="color: var(--primary-blue);">질문 제시부터 답변 평가까지 회사가 정한 기준을 바탕으로 AI 면접관이 모든 과정을 진행합니다.</strong> 즉, 여러분의 답변은 AI 면접관이 직접 분석하고 평가하게 됩니다.</p>
+            <p>여러분은 지금부터 Aivora에서 직접 제작한 AI 면접 시스템을 체험하시게 됩니다.</p>
+            <p>이 시스템은 실제 채용 과정에서 활용될 수 있도록 저희 Aivora가 직접 설계한 면접 프로그램입니다. <span style="color: var(--primary-blue);">질문 제시부터 답변 평가까지 회사가 정한 기준을 바탕으로 AI 면접관이 모든 과정을 진행합니다.</span> 즉, 여러분의 답변은 AI 면접관이 직접 분석하고 평가하게 됩니다.</p>
             <br>
-            <p>이번 실험에서는 실제 면접과 유사한 환경 속에서 여러분이 지원자의 입장이 되어 질문에 응답하시게 됩니다. 답변은 조직 내 소통 역량을 발휘할 수 있는 질문으로 구성되어 있습니다. 모든 문항에는 준비 시간이 주어지며, 준비 시간이 끝나면 자동으로 녹음이 시작됩니다. <strong style="color: var(--primary-blue);">답변 시간은 시간 초로 보이는데,&nbsp; 최소 30초 이상 말씀해주셔야 다음 화면으로 넘어갈 수 있습니다.</strong></p>
+            <p>이번 실험에서는 실제 면접과 유사한 환경 속에서 여러분이 지원자의 입장이 되어 질문에 응답하시게 됩니다. 문항은 조직 내 소통 역량을 평가할 수 있는 질문으로 구성되어 있습니다. 모든 문항에는 준비 시간이 주어지며, 준비 시간이 끝나면 자동으로 녹음이 시작됩니다. <span style="color: var(--primary-blue);">답변 시간은 시간 초로 보여드리며, 각 문항 별로 최소 30초 이상 말씀해주셔야 다음 화면으로 넘어갈 수 있습니다.</span></p>
             <br>
-            <p><strong style="color: var(--primary-blue);">답변이 구체적일수록 AI 면접관이 더욱 정확하게 분석할 수 있습니다.</strong> 따라서 가능한 한 예시나 세부적인 설명을 포함하여 상상하게 말씀해주시면 더 의미있는 평가 결과를 확인할 수 있습니다. 모든 답변이 끝나면, <strong style="color: var(--primary-blue);">AI 면접관이 분석한 관련한 평가 결과를</strong> 보여드립니다.</p>
+            <p>모든 문항은 <strong>답변 내용의 양과 적절성 그리고 순발력</strong>을 바탕으로 평가합니다. <span style="color: var(--primary-blue);">답변이 구체적일수록 AI 면접관이 더욱 정확하게 분석할 수 있습니다.</span> 따라서 가능한 한 예시나 세부적인 설명을 포함하여 성실하게 말씀해주시면 더 의미있는 평가 결과를 확인할 수 있습니다. <span style="color: var(--primary-blue);">모든 답변이 끝나면, AI 면접관이 제공하는 평가 결과가 제시됩니다.</span> 이 평가는 실제 채용과는 무관한 모의결과로, 시스템 체험의 일환으로 제공됩니다.</p>
             <br>
-            <p>오늘의 모든 과정은 <strong  style="color: var(--primary-blue);">연구 목적으로만 사용</strong>되며, 실제 평가나나 불합격과는 전혀 관련이 없습니다.</p>
-            <p>체험이 끝난 뒤에는 간단한 설문을 작성해주시면 됩니다.</p>
-            <p>여러분의 성실한 참여가 앞으로 시스템을 개선하는 데 큰 도움이 될 것입니다!</p>
+            <p>보다 정확한 평가를 위해 면접 중에는 검색이나 외부 도움없이 본인의 생각을 솔직하게 답변해주시기 바랍니다.</p>
+            <br>
+            <p>체험이 끝난 뒤에는 간단한 설문을 작성해주시면 됩니다. <span style="color: var(--primary-blue);">오늘 수집된 데이터는 반드시 연구 목적으로만 사용됩니다.</span> 여러분의 성실한 참여가 앞으로 시스템을 개선하는 데 큰 도움이 될 것입니다!</p>
             <div style="text-align:center;"><button id="guide-next-btn-soft">이해했으며, 다음으로</button></div>
         </div>
     </div>
@@ -321,6 +327,7 @@
     </div>
 
     <div id="device-check-page" class="page hidden">
+        <audio id="explain-audio" src="https://storage.cloud.google.com/ai-interview-skku-is-2025/explain_soft.mp3"></audio>
         <div class="content-box">
              <h2>실험 시작 안내</h2>
             <p>인터뷰를 시작하기 전, 카메라와 마이크가 잘 작동하는지 확인하겠습니다.</p>
@@ -385,14 +392,14 @@
         <div class="content-box">
             <div class="spinner"></div>
             <p style="font-size: 1.2em; font-weight: bold;">답변이 저장되었습니다!</p>
-            <p style="color: var(--light-text);">AI 면접관이 다음 문제를 출제할 때까지 잠시만 기다려주세요.</p>
+            <p style="font-size: 1.2em; color: var(--light-text);">AI 면접관이 다음 문제를 출제할 때까지 잠시만 기다려주세요.</p>
             <img src="images/aivora-logo.webp" alt="Aivora Logo" class="aivora-logo">
         </div>
     </div>
 
     <div id="video-page" class="page hidden">
         <div class="content-box">
-            <h2>결과를 분석하는 동안 잠시 영상을 시청해주세요.</h2>
+            <h2>AI 면접관이 결과를 분석하는 동안 잠시 영상을 시청해주세요.</h2>
             <video id="post-interview-player" controls>
                 <source src="https://storage.cloud.google.com/ai-interview-skku-is-2025/final-video.mp4" type="video/mp4">
                 브라우저가 비디오 태그를 지원하지 않습니다.
@@ -404,17 +411,13 @@
         <div class="content-box">
             <h1>1차 AI 면접 <span>합격</span>을 진심으로 축하드립니다!</h1>
             <p>축하드립니다! 귀하는 1차 AI 면접에서 합격하셨습니다.</p>
-            <p>이번 평가에서 AI 면접관은 귀하의 답변을 조직 내 소통 역량과 면접 태도 측면에서 분석하여 종합적으로 판단했습니다.</p>
+            <br>
+            <p>이번 평가에서 AI 면접관은 귀하의 답변을 조직 내 소통 역량과 면접 태도 요소로 분석하여 종합적으로 판단했습니다.</p>
             <br>
             <p>조직 내 소통 역량은 다른 사람과 효과적으로 의사소통하고, 상황을 판단 및 대처하는 능력을 의미하며, 리더십, 문제 대처, 갈등 중재, 설득, 윤리적 판단을 평가합니다.</p>
-            <p>면접 태도는 답변의 논리성, 자신감, 집중력, 긍정성, 신뢰성을 기준으로 평가합니다.</p>
+            <p>면접 태도는 답변 내용의 양, 적절성, 순발력, 자신감, 집중력, 신뢰성을 기준으로 평가합니다.</p>
             <br>
-            <p>AI 면접관의 평가 결과, 귀하께서는 <b>대부분의 조직 내 소통 역량과 태도 요소에서 우수한 성과</b>를 보여주셨습니다. 특히 <b>리더십과 문제 대처 능력, 갈등 중재 능력에서 높은 점수</b>를 받았으며, <b>논리적 사고와 자신감, 집중력에서도 뛰어난 평가</b>를 받았습니다.</p>
-            <br>
-            <p>이러한 결과는 귀하가 팀 내에서 효과적으로 리더십을 발휘하고, 문제 상황에서도 침착하게 대응할 수 있을 것이라 기대됩니다.</p>
-            <br>
-            <p>이러한 점들을 근거로, AI 면접관은 귀하를 <b>합격 기준 충족자</b>로 판정하였습니다. 따라서 귀하는 다음 단계 면접 평가로 이어질 기회를 얻게 되셨습니다.</p>
-            <br>
+            <p>AI 면접관의 평가 결과, 이번 면접에서는 경쟁이 치열하여 <strong style="color: var(--primary-blue);">전체 지원자 중 상위 20%만이 합격</strong>하였으며, 귀하께서 그 안에 포함되어 <strong style="color: var(--primary-blue);">합격</strong>하셨습니다.</p>
             <p>다시 한 번 합격을 축하드립니다.</p>
             <br>
             <p>감사합니다.<br>Aivora AI 면접관 드림</p>
@@ -425,19 +428,14 @@
     <div id="result-page-fail" class="page hidden result-page info-page-layout">
         <div class="content-box">
             <h1>1차 AI 면접 평가에서 아쉽게 <span>불합격</span> 판정을 받으셨습니다.</h1>
-            <p>안녕하세요. 아쉽게도 귀하는 1차 AI 면접 평가에서 불합격하셨습니다.</p>
-            <p>이번 평가에서 AI 면접관은 귀하의 답변을 조직 내 소통 역량과 면접 태도 측면에서 분석하여 종합적으로 판단했습니다.</p>
+            <p>안녕하세요. 아쉽게도 귀하는 1차 AI 면접에서 불합격하셨습니다.</p>
+            <br>
+            <p>이번 평가에서 AI 면접관은 귀하의 답변을 조직 내 소통 역량과 면접 태도 요소로 분석하여 종합적으로 판단했습니다.</p>
             <br>
             <p>조직 내 소통 역량은 다른 사람과 효과적으로 의사소통하고, 상황을 판단 및 대처하는 능력을 의미하며, 리더십, 문제 대처, 갈등 중재, 설득, 윤리적 판단을 평가합니다.</p>
-            <p>면접 태도는 답변의 논리성, 자신감, 집중력, 긍정성, 신뢰성을 기준으로 평가합니다.</p>
+            <p>면접 태도는 답변 내용의 양, 적절성, 순발력, 자신감, 집중력, 신뢰성을 기준으로 평가합니다.</p>
             <br>
-            <p>AI 면접관의 평가 결과, 귀하께서는 <strong style="color: var(--primary-blue);">일부 조직 내 소통 역량과 태도 요소에서 기대 수준에 미치지 못하는 결과</strong>를 보였습니다. 특히 <strong style="color: var(--primary-blue);">리더십과 문제 대처 능력, 갈등 중재에서 다소 낮은 점수</strong>를 받았으며, <strong style="color: var(--primary-blue);">논리적 사고와 자신감, 집중력에서 보완이 필요</strong>합니다.</p>
-            <br>
-            <p>이번 결과는 팀 내 다양한 상황에서 보다 효과적으로 대응하고 설득력 있는 의사소통을 강화할 필요가 있을 것으로 판단됩니다.</p>
-            <br>
-            <p>이러한 점들을 근거로, AI 면접관은 귀하를 <strong style="color: var(--primary-blue);">합격 기준 미충족자</strong>로 판정하였습니다. 비록 이번에는 아쉬운 결과를 받으셨지만, 평가에서 드러난 부분들을 보완한다면 향후 더 좋은 성과를 거두실 수 있을 것이라 기대됩니다.</p>
-            <br>
-            <p>이번 면접에 참여해주셔서 감사드리며, 귀하의 발전을 응원합니다.</p>
+            <p>AI 면접관의 평가 결과, 이번 면접에서는 경쟁이 치열하여 <strong style="color: #e74c3c;">전체 지원자 중 상위 20%</strong>만이 합격하였으며, 귀하는 그 안에 포함되지 않아 아쉽게도 <strong style="color: #e74c3c;">불합격</strong>하셨습니다.</p>
             <br>
             <p>감사합니다.<br>Aivora AI 면접관 드림</p>
             <img src="images/aivora-logo.webp" alt="Aivora Logo" class="aivora-logo">

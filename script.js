@@ -1,4 +1,21 @@
 // ======================= [script.js 코드 시작] =======================
+
+// ======================= [시간 설정] =======================
+// ⚠️ 이 부분을 수정하여 면접 시간을 조절할 수 있습니다
+const TIME_CONFIG = {
+    PREP_TIME: 5,              // 준비 시간 (초)
+    MIN_ANSWER_TIME: 30,       // 최소 답변 시간 (초)
+    ENABLE_MIN_ANSWER_TIME: true,  // ⭐ 최소 답변 시간 제한 활성화 (false로 설정하면 30초 제한 없이 바로 넘어갈 수 있음)
+    SAVING_PAGE_DELAY: 10000,  // 저장 페이지 대기 시간 (밀리초) - 10초
+
+    // 답변 시간 설정 (초)
+    SELF_INTRO_TIME: 60,       // 자기소개 시간
+    SHORT_ANSWER_TIME: 60,     // 짧은 답변 시간
+    NORMAL_ANSWER_TIME: 90,    // 일반 답변 시간
+    LONG_ANSWER_TIME: 120,     // 긴 답변 시간
+};
+// ======================= [시간 설정 끝] =======================
+
 // --- 상태 관리 ---
 const userData = {};
 const userAnswers = [];
@@ -8,13 +25,19 @@ let timerInterval, prepTimerInterval;
 let currentQuestionIndex = 0;
 let interviewType = '';
 let lastSubmittedCode = "";
+let answerStartTime = null;
 
-// --- 질문 데이터 (테스트용 대기시간 5초) ---
+// --- URL 파라미터 파싱 ---
+const urlParams = new URLSearchParams(window.location.search);
+const urlType = urlParams.get('type'); // 'soft' or 'hard'
+const urlResult = urlParams.get('result'); // 'pass' or 'fail'
+
+// --- 질문 데이터 (실제 진행용) ---
 const softSkillQuestions = [
     {
         type: 'video',
         text: '1분동안 자기 소개를 해주세요.',
-        prepTime: 5,
+        prepTime: 20,
         answerTime: 60
     },
     {
@@ -24,9 +47,9 @@ const softSkillQuestions = [
 프로젝트 마감 기한은 다가오는데, 두 명의 동료가 서로 다른 의견을 내고 있습니다. 한 명은 새로운 방식을 시도해야 한다고 주장하고, 다른 한 명은 검증된 기존 방식을 고수해야 한다고 합니다.
 
 이 상황에서 팀원들을 어떻게 설득하고, 프로젝트를 어떤 방향으로 이끌어가시겠습니까?
-        
+
 구체적으로 어떤 말을 할지 설명해주세요.`,
-        prepTime: 5,
+        prepTime: 25,
         answerTime: 90
     },
     {
@@ -39,7 +62,7 @@ const softSkillQuestions = [
 당신을 비난하고 참여를 거부하는 팀원들을 어떻게 설득하여 참여를 유도하시겠습니까?
 
 구체적으로 어떤 말을 할지 설명해주세요.`,
-        prepTime: 5,
+        prepTime: 25,
         answerTime: 90
     },
     {
@@ -47,9 +70,9 @@ const softSkillQuestions = [
         text: `한 팀원이 '항상 일이 불공평하게 배분된다'고 회의에서 불만을 강하게 드러냈습니다. 다른 팀원들은 그 상황을 불편해하였고, 분위기는 냉각되었습니다.
 
 당신은 이 상황에서 회의를 어떻게 수습하고, 불만을 제기한 동료와 다른 팀원들의 관계를 어떻게 회복시키겠습니까?
-        
+
 구체적으로 말씀해주세요.`,
-        prepTime: 5,
+        prepTime: 25,
         answerTime: 90
     },
     {
@@ -59,7 +82,7 @@ const softSkillQuestions = [
 팀 전체의 사기를 유지하면서도 불만을 제기한 팀원의 목소리를 존중하려면 어떻게 하면 좋을까요?
 
 갈등이 다시 표면화되지 않도록 어떤 대화나 행동을 통해 관계 회복을 이끌어내실지 구체적으로 말씀해주세요.`,
-        prepTime: 5,
+        prepTime: 25,
         answerTime: 90
     },
     {
@@ -67,9 +90,9 @@ const softSkillQuestions = [
         text: `마케팅 부서에서 사실을 과장한 광고 문구를 쓰자는 제안이 나왔습니다. 이 방식은 매출 증대 효과가 있을 수 있지만, 고객 신뢰를 잃을 위험도 있습니다.
 
 이 회의에서 당신은 마케팅 부서 직원들을 어떻게 설득하겠습니까?
-        
+
 어떻게 말을 할지 구체적으로 설명해주세요.`,
-        prepTime: 5,
+        prepTime: 25,
         answerTime: 90
     },
     {
@@ -79,7 +102,7 @@ const softSkillQuestions = [
 당신은 회사의 단기 성과와 고객 신뢰 사이에서 균형을 어떻게 잡으시겠습니까?
 
 당신이라면 어떻게 말을 하고, 행동할 것인지 구체적으로 설명해주세요.`,
-        prepTime: 5,
+        prepTime: 25,
         answerTime: 90
     },
 ];
@@ -221,7 +244,6 @@ const guideNextBtnHard = document.getElementById('guide-next-btn-hard');
 const startInterviewBtn = document.getElementById('start-interview-btn');
 const submitAnswerBtn = document.getElementById('submit-answer-btn');
 const submitCodeBtn = document.getElementById('submit-code-btn');
-const conditionSelect = document.getElementById('condition-select');
 
 const webcamCheck = document.getElementById('webcam-check');
 const webcamInterview = document.getElementById('webcam-interview');
@@ -257,6 +279,12 @@ function showPage(pageId) {
         if (hardAudio) {
             hardAudio.currentTime = 0;
             hardAudio.play().catch(err => console.log('Audio play failed:', err));
+        }
+    } else if (pageId === 'deviceCheck' && interviewType === 'soft') {
+        const explainAudio = document.getElementById('explain-audio');
+        if (explainAudio) {
+            explainAudio.currentTime = 0;
+            explainAudio.play().catch(err => console.log('Audio play failed:', err));
         }
     }
 }
@@ -419,6 +447,9 @@ function startAnswer() {
     }
     if (!startRecording(localStream)) return;
 
+    // 답변 시작 시간 기록
+    answerStartTime = Date.now();
+
     let answerTimeLeft = question.answerTime;
     const updateTimer = () => {
         const minutes = String(Math.floor(answerTimeLeft / 60)).padStart(2, '0');
@@ -435,6 +466,16 @@ function startAnswer() {
 }
 
 async function submitAnswer() {
+    // 최소 답변 시간 제한 체크 (구두 답변 문항 전체 적용)
+    if (TIME_CONFIG.ENABLE_MIN_ANSWER_TIME && answerStartTime) {
+        const elapsedSeconds = (Date.now() - answerStartTime) / 1000;
+        if (elapsedSeconds < TIME_CONFIG.MIN_ANSWER_TIME) {
+            const remainingSeconds = Math.ceil(TIME_CONFIG.MIN_ANSWER_TIME - elapsedSeconds);
+            showToast(`최소 ${TIME_CONFIG.MIN_ANSWER_TIME}초 이상 답변해주세요. (${remainingSeconds}초 남음)`);
+            return;
+        }
+    }
+
     clearInterval(timerInterval);
     const audioBlob = await stopRecording();
     userAnswers.push(audioBlob);
@@ -455,7 +496,7 @@ function showSavingAndNext() {
     setTimeout(() => {
         currentQuestionIndex++;
         startNextQuestion();
-    }, 2500);
+    }, TIME_CONFIG.SAVING_PAGE_DELAY);
 }
 
 async function finishInterview() {
@@ -505,15 +546,38 @@ async function sendDataToServer(answersPayload) {
 }
 
 // --- 이벤트 리스너 설정 ---
-window.addEventListener('load', () => showPage('start'));
+window.addEventListener('load', () => {
+    // URL 파라미터가 있으면 자동으로 설정
+    if (urlType && urlResult) {
+        interviewType = urlType; // 'soft' or 'hard'
+        userData.testCondition = urlResult; // 'pass' or 'fail'
+        showPage('userInfo');
+    } else {
+        showPage('start');
+    }
+});
 
-document.getElementById('soft-skill-btn').addEventListener('click', () => {
+document.getElementById('soft-pass-btn').addEventListener('click', () => {
     interviewType = 'soft';
+    userData.testCondition = 'pass';
     showPage('userInfo');
 });
 
-document.getElementById('hard-skill-btn').addEventListener('click', () => {
+document.getElementById('soft-fail-btn').addEventListener('click', () => {
+    interviewType = 'soft';
+    userData.testCondition = 'fail';
+    showPage('userInfo');
+});
+
+document.getElementById('hard-pass-btn').addEventListener('click', () => {
     interviewType = 'hard';
+    userData.testCondition = 'pass';
+    showPage('userInfo');
+});
+
+document.getElementById('hard-fail-btn').addEventListener('click', () => {
+    interviewType = 'hard';
+    userData.testCondition = 'fail';
     showPage('userInfo');
 });
 
@@ -521,7 +585,10 @@ startForm.addEventListener('submit', e => {
     e.preventDefault();
     userData.name = document.getElementById('name').value;
     userData.id = document.getElementById('user-id').value;
-    userData.testCondition = conditionSelect.value;
+    // URL 파라미터로 이미 설정되지 않은 경우에만 기본값 설정
+    if (!userData.testCondition) {
+        userData.testCondition = 'pass'; // 기본값
+    }
     if (interviewType === 'soft') {
         showPage('guideSoft');
     } else {
