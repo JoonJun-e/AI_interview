@@ -29,8 +29,18 @@ let answerStartTime = null;
 
 // --- URL 파라미터 파싱 ---
 const urlParams = new URLSearchParams(window.location.search);
-const urlType = urlParams.get('type'); // 'soft' or 'hard'
-const urlResult = urlParams.get('result'); // 'pass' or 'fail'
+const conditionParam = urlParams.get('c'); // 'TSOA', 'TSOR', 'THOA', or 'THOR'
+
+// 컨디션 매핑
+const conditionMap = {
+    'TSOA': { type: 'soft', result: 'pass' },  // a: 소프트스킬 + 합격
+    'TSOR': { type: 'soft', result: 'fail' },  // b: 소프트스킬 + 불합격
+    'THOA': { type: 'hard', result: 'pass' },  // c: 하드스킬 + 합격
+    'THOR': { type: 'hard', result: 'fail' }   // d: 하드스킬 + 불합격
+};
+
+const urlType = conditionParam && conditionMap[conditionParam] ? conditionMap[conditionParam].type : null;
+const urlResult = conditionParam && conditionMap[conditionParam] ? conditionMap[conditionParam].result : null;
 
 // --- 질문 데이터 (실제 진행용) ---
 const softSkillQuestions = [
