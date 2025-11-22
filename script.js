@@ -3,10 +3,10 @@
 // ======================= [시간 설정] =======================
 // ⚠️ 이 부분을 수정하여 면접 시간을 조절할 수 있습니다
 const TIME_CONFIG = {
-    PREP_TIME: 3,              // 준비 시간 (초) - 테스트용 3초
-    MIN_ANSWER_TIME: 3,        // 최소 답변 시간 (초) - 테스트용 3초
+    PREP_TIME: 3,              // 준비 시간 (초)
+    MIN_ANSWER_TIME: 3,       // 최소 답변 시간 (초)
     ENABLE_MIN_ANSWER_TIME: true,  // ⭐ 최소 답변 시간 제한 활성화 (false로 설정하면 30초 제한 없이 바로 넘어갈 수 있음)
-    SAVING_PAGE_DELAY: 3000,   // 저장 페이지 대기 시간 (밀리초) - 테스트용 3초
+    SAVING_PAGE_DELAY: 10000,  // 저장 페이지 대기 시간 (밀리초) - 10초
 
     // 답변 시간 설정 (초)
     SELF_INTRO_TIME: 60,       // 자기소개 시간
@@ -29,18 +29,8 @@ let answerStartTime = null;
 
 // --- URL 파라미터 파싱 ---
 const urlParams = new URLSearchParams(window.location.search);
-const conditionParam = urlParams.get('c'); // 'TSOA', 'TSOR', 'THOA', or 'THOR'
-
-// 컨디션 매핑
-const conditionMap = {
-    'TSOA': { type: 'soft', result: 'pass' },  // a: 소프트스킬 + 합격
-    'TSOR': { type: 'soft', result: 'fail' },  // b: 소프트스킬 + 불합격
-    'THOA': { type: 'hard', result: 'pass' },  // c: 하드스킬 + 합격
-    'THOR': { type: 'hard', result: 'fail' }   // d: 하드스킬 + 불합격
-};
-
-const urlType = conditionParam && conditionMap[conditionParam] ? conditionMap[conditionParam].type : null;
-const urlResult = conditionParam && conditionMap[conditionParam] ? conditionMap[conditionParam].result : null;
+const urlType = urlParams.get('type'); // 'soft' or 'hard'
+const urlResult = urlParams.get('result'); // 'pass' or 'fail'
 
 // --- 질문 데이터 (실제 진행용) ---
 const softSkillQuestions = [
@@ -59,7 +49,7 @@ const softSkillQuestions = [
 이 상황에서 팀원들을 어떻게 설득하고, 프로젝트를 어떤 방향으로 이끌어가시겠습니까?
 
 구체적으로 어떤 말을 할지 설명해주세요.`,
-        prepTime: 25,
+        prepTime: 25, 
         answerTime: 90
     },
     {
@@ -102,7 +92,7 @@ const softSkillQuestions = [
 이 회의에서 당신은 마케팅 부서 직원들을 어떻게 설득하겠습니까?
 
 어떻게 말을 할지 구체적으로 설명해주세요.`,
-        prepTime: 25,
+        prepTime: 25,//25
         answerTime: 90
     },
     {
@@ -112,7 +102,7 @@ const softSkillQuestions = [
 당신은 회사의 단기 성과와 고객 신뢰 사이에서 균형을 어떻게 잡으시겠습니까?
 
 당신이라면 어떻게 말을 하고, 행동할 것인지 구체적으로 설명해주세요.`,
-        prepTime: 25,
+        prepTime: 25, //25
         answerTime: 90
     },
 ];
@@ -246,6 +236,7 @@ const pages = {
     resultSoftFail: document.getElementById('result-page-fail'),
     resultHardPass: document.getElementById('result-page-hard-pass'),
     resultHardFail: document.getElementById('result-page-hard-fail'),
+    survey: document.getElementById('survey-page'),
 };
 
 const startForm = document.getElementById('user-info-form');
@@ -290,7 +281,20 @@ function showPage(pageId) {
             hardAudio.currentTime = 0;
             hardAudio.play().catch(err => console.log('Audio play failed:', err));
         }
-    } else if (pageId === 'deviceCheck' && interviewType === 'soft') {
+    }
+
+    // start 페이지로 이동시 모든 오디오 중지
+    if (pageId === 'start') {
+        const softAudio = document.getElementById('soft-intro-audio');
+        const hardAudio = document.getElementById('hard-intro-audio');
+        const explainAudio = document.getElementById('explain-audio');
+        if (softAudio) softAudio.pause();
+        if (hardAudio) hardAudio.pause();
+        if (explainAudio) explainAudio.pause();
+    }
+
+    // deviceCheck 페이지 진입 시 오디오 자동 재생
+    if (pageId === 'deviceCheck' && interviewType === 'soft') {
         const explainAudio = document.getElementById('explain-audio');
         if (explainAudio) {
             explainAudio.currentTime = 0;
@@ -386,6 +390,10 @@ function stopRecording() {
 
 // --- 면접 흐름 제어 ---
 function startNextQuestion() {
+    // deviceCheck 페이지의 오디오 멈추기
+    const explainAudio = document.getElementById('explain-audio');
+    if (explainAudio) explainAudio.pause();
+
     const questions = (interviewType === 'hard') ? hardSkillQuestions : softSkillQuestions;
     if (currentQuestionIndex >= questions.length) {
         finishInterview();
@@ -633,5 +641,22 @@ postInterviewPlayer.addEventListener('ended', () => {
         if (condition === 'pass') showPage('resultHardPass');
         else showPage('resultHardFail');
     }
+});
+
+// 결과 페이지의 "다음" 버튼 이벤트 리스너
+document.getElementById('soft-pass-next-btn').addEventListener('click', () => {
+    showPage('survey');
+});
+
+document.getElementById('soft-fail-next-btn').addEventListener('click', () => {
+    showPage('survey');
+});
+
+document.getElementById('hard-pass-next-btn').addEventListener('click', () => {
+    showPage('survey');
+});
+
+document.getElementById('hard-fail-next-btn').addEventListener('click', () => {
+    showPage('survey');
 });
 // ======================= [script.js 코드 끝] =======================

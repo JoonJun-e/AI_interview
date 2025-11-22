@@ -5,7 +5,7 @@ import { google } from 'googleapis';
 // --- Google Cloud 설정 ---
 const credentials = JSON.parse(process.env.GCP_CREDENTIALS);
 const GCS_BUCKET_NAME = 'ai-interview-skku-is-2025'; // 👈 여기에 GCS 버킷 이름을 넣으세요.
-const GOOGLE_SHEET_ID = '1fr_HI18bXX1DIHXVJUMEpSScXUe-9ExTYz9fRWdk5V0';             // 👈 여기에 구글 시트 ID를 넣으세요.
+const GOOGLE_SHEET_ID = '1qZ1wrVgvp2PGJ7i_0xF8etHLo2o-DbWcGpJ9zfhEF_E';             // 👈 여기에 구글 시트 ID를 넣으세요.
 
 const storage = new Storage({ credentials });
 
