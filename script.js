@@ -4,7 +4,7 @@
 // ⚠️ 이 부분을 수정하여 면접 시간을 조절할 수 있습니다
 const TIME_CONFIG = {
     PREP_TIME: 3,              // 준비 시간 (초)
-    MIN_ANSWER_TIME: 3,       // 최소 답변 시간 (초)
+    MIN_ANSWER_TIME: 30,       // 최소 답변 시간 (초)
     ENABLE_MIN_ANSWER_TIME: true,  // ⭐ 최소 답변 시간 제한 활성화 (false로 설정하면 30초 제한 없이 바로 넘어갈 수 있음)
     SAVING_PAGE_DELAY: 10000,  // 저장 페이지 대기 시간 (밀리초) - 10초
 
