@@ -573,8 +573,16 @@ async function sendDataToServer(answersPayload) {
         body: JSON.stringify(payload)
     });
     if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.details || errorData.error || 'API 호출 실패');
+        let errorMessage = 'API 호출 실패';
+        try {
+            const errorData = await response.json();
+            errorMessage = errorData.details || errorData.error || errorMessage;
+        } catch (e) {
+            // JSON 파싱 실패시 텍스트로 읽기
+            const errorText = await response.text();
+            errorMessage = errorText || `HTTP ${response.status}: ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
     }
     return await response.json();
 }

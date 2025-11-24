@@ -4,5 +4,11 @@
     { "source": "/TSOR", "destination": "/?type=soft&result=fail" },
     { "source": "/THOA", "destination": "/?type=hard&result=pass" },
     { "source": "/THOR", "destination": "/?type=hard&result=fail" }
-  ]
+  ],
+  "functions": {
+    "api/evaluate.js": {
+      "maxDuration": 60,
+      "memory": 1024
+    }
+  }
 }
