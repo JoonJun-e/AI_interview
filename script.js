@@ -567,24 +567,40 @@ function blobToBase64(blob) {
 
 async function sendDataToServer(answersPayload) {
     const payload = { userInfo: userData, answers: answersPayload, interviewType: interviewType };
-    const response = await fetch('/api/evaluate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-    });
-    if (!response.ok) {
-        let errorMessage = 'API 호출 실패';
-        try {
-            const errorData = await response.json();
-            errorMessage = errorData.details || errorData.error || errorMessage;
-        } catch (e) {
-            // JSON 파싱 실패시 텍스트로 읽기
-            const errorText = await response.text();
-            errorMessage = errorText || `HTTP ${response.status}: ${response.statusText}`;
+
+    // 타임아웃 설정 (5분)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 300000);
+
+    try {
+        const response = await fetch('/api/evaluate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            let errorMessage = 'API 호출 실패';
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.details || errorData.error || errorMessage;
+            } catch (e) {
+                // JSON 파싱 실패시 텍스트로 읽기
+                const errorText = await response.text();
+                errorMessage = errorText || `HTTP ${response.status}: ${response.statusText}`;
+            }
+            throw new Error(errorMessage);
         }
-        throw new Error(errorMessage);
+        return await response.json();
+    } catch (error) {
+        clearTimeout(timeoutId);
+        if (error.name === 'AbortError') {
+            throw new Error('요청 시간 초과: 서버 응답이 너무 오래 걸립니다.');
+        }
+        throw error;
     }
-    return await response.json();
 }
 
 // --- 이벤트 리스너 설정 ---
