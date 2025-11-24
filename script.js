@@ -27,10 +27,26 @@ let interviewType = '';
 let lastSubmittedCode = "";
 let answerStartTime = null;
 
-// --- URL 파라미터 파싱 ---
+// --- URL 파라미터 및 경로 파싱 ---
 const urlParams = new URLSearchParams(window.location.search);
-const urlType = urlParams.get('type'); // 'soft' or 'hard'
-const urlResult = urlParams.get('result'); // 'pass' or 'fail'
+let urlType = urlParams.get('type'); // 'soft' or 'hard'
+let urlResult = urlParams.get('result'); // 'pass' or 'fail'
+
+// 경로 기반 파싱 (TSOA, TSOR, THOA, THOR)
+const pathname = window.location.pathname;
+if (pathname === '/TSOA') {
+    urlType = 'soft';
+    urlResult = 'pass';
+} else if (pathname === '/TSOR') {
+    urlType = 'soft';
+    urlResult = 'fail';
+} else if (pathname === '/THOA') {
+    urlType = 'hard';
+    urlResult = 'pass';
+} else if (pathname === '/THOR') {
+    urlType = 'hard';
+    urlResult = 'fail';
+}
 
 // --- 질문 데이터 (실제 진행용) ---
 const softSkillQuestions = [
