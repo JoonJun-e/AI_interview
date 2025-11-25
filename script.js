@@ -53,7 +53,7 @@ const softSkillQuestions = [
     {
         type: 'video',
         text: '1분동안 자기 소개를 해주세요.',
-        prepTime: 1,//20
+        prepTime: 20,//20
         answerTime: 60
     },
     {
@@ -65,7 +65,7 @@ const softSkillQuestions = [
 이 상황에서 팀원들을 어떻게 설득하고, 프로젝트를 어떤 방향으로 이끌어가시겠습니까?
 
 구체적으로 어떤 말을 할지 설명해주세요.`,
-        prepTime: 1, //25
+        prepTime: 25, //25
         answerTime: 90
     },
     {
@@ -78,7 +78,7 @@ const softSkillQuestions = [
 당신을 비난하고 참여를 거부하는 팀원들을 어떻게 설득하여 참여를 유도하시겠습니까?
 
 구체적으로 어떤 말을 할지 설명해주세요.`,
-        prepTime: 1,//25
+        prepTime: 25,//25
         answerTime: 90
     },
     {
@@ -88,7 +88,7 @@ const softSkillQuestions = [
 당신은 이 상황에서 회의를 어떻게 수습하고, 불만을 제기한 동료와 다른 팀원들의 관계를 어떻게 회복시키겠습니까?
 
 구체적으로 말씀해주세요.`,
-        prepTime: 1,//25
+        prepTime: 25,//25
         answerTime: 90
     },
     {
@@ -98,7 +98,7 @@ const softSkillQuestions = [
 팀 전체의 사기를 유지하면서도 불만을 제기한 팀원의 목소리를 존중하려면 어떻게 하면 좋을까요?
 
 갈등이 다시 표면화되지 않도록 어떤 대화나 행동을 통해 관계 회복을 이끌어내실지 구체적으로 말씀해주세요.`,
-        prepTime: 1,//25
+        prepTime: 25,//25
         answerTime: 90
     },
     {
@@ -118,7 +118,7 @@ const softSkillQuestions = [
 당신은 회사의 단기 성과와 고객 신뢰 사이에서 균형을 어떻게 잡으시겠습니까?
 
 당신이라면 어떻게 말을 하고, 행동할 것인지 구체적으로 설명해주세요.`,
-        prepTime: 1, //25
+        prepTime: 25, //25
         answerTime: 90
     },
 ];
