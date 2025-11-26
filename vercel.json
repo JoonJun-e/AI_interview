@@ -7,7 +7,11 @@
   ],
   "functions": {
     "api/evaluate.js": {
-      "maxDuration": 300,
+      "maxDuration": 60,
+      "memory": 1024
+    },
+    "api/upload-answer.js": {
+      "maxDuration": 60,
       "memory": 1024
     }
   }

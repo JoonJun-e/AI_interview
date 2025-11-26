@@ -19,6 +19,7 @@ const TIME_CONFIG = {
 // --- 상태 관리 ---
 const userData = {};
 const userAnswers = [];
+const uploadedUrls = []; // 업로드된 파일의 URL을 저장
 let localStream, audioContext, analyser, mediaRecorder;
 let recordedChunks = [];
 let timerInterval, prepTimerInterval;
@@ -513,15 +514,32 @@ async function submitAnswer() {
     clearInterval(timerInterval);
     const audioBlob = await stopRecording();
     userAnswers.push(audioBlob);
+
+    // 즉시 업로드
+    try {
+        const base64Audio = await blobToBase64(audioBlob);
+        const fileName = `${Date.now()}-${userData.name?.replace(/\s/g, '') || 'user'}-${uploadedUrls.length + 1}.webm`;
+        const uploadResult = await uploadSingleAnswer(base64Audio, fileName);
+        uploadedUrls.push(uploadResult.url);
+    } catch (error) {
+        console.error('업로드 실패:', error);
+        alert('답변 저장에 실패했습니다: ' + error.message);
+        return;
+    }
+
     showSavingAndNext();
 }
 
-function submitCode() {
+async function submitCode() {
     clearInterval(timerInterval);
     const code = codeEditor.value;
     lastSubmittedCode = code;
     const codeBlob = new Blob([code], { type: 'text/plain' });
     userAnswers.push(codeBlob);
+
+    // 코드는 텍스트이므로 N/A로 저장
+    uploadedUrls.push("N/A (코드 답변)");
+
     showSavingAndNext();
 }
 
@@ -538,11 +556,10 @@ async function finishInterview() {
     if (localStream) {
         localStream.getTracks().forEach(track => track.stop());
     }
-    const answersPayload = await Promise.all(
-        userAnswers.map(blob => blobToBase64(blob))
-    );
+
     try {
-        await sendDataToServer(answersPayload);
+        // 업로드된 URL 목록과 메타데이터만 전송
+        await sendMetadataToServer(uploadedUrls);
         showPage('video');
         postInterviewPlayer.load();
         postInterviewPlayer.play().catch(() => {
@@ -565,12 +582,49 @@ function blobToBase64(blob) {
     });
 }
 
-async function sendDataToServer(answersPayload) {
-    const payload = { userInfo: userData, answers: answersPayload, interviewType: interviewType };
+// 개별 답변 업로드 함수
+async function uploadSingleAnswer(base64Audio, fileName) {
+    const payload = { base64Audio, fileName };
 
-    // 타임아웃 설정 (5분)
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 300000);
+    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60초
+
+    try {
+        const response = await fetch('/api/upload-answer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            let errorMessage = 'API 호출 실패';
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.details || errorData.error || errorMessage;
+            } catch (e) {
+                const errorText = await response.text();
+                errorMessage = errorText || `HTTP ${response.status}: ${response.statusText}`;
+            }
+            throw new Error(errorMessage);
+        }
+        return await response.json();
+    } catch (error) {
+        clearTimeout(timeoutId);
+        if (error.name === 'AbortError') {
+            throw new Error('업로드 시간 초과');
+        }
+        throw error;
+    }
+}
+
+// 메타데이터만 서버에 전송
+async function sendMetadataToServer(audioUrls) {
+    const payload = { userInfo: userData, audioUrls, interviewType };
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30초
 
     try {
         const response = await fetch('/api/evaluate', {
@@ -587,7 +641,6 @@ async function sendDataToServer(answersPayload) {
                 const errorData = await response.json();
                 errorMessage = errorData.details || errorData.error || errorMessage;
             } catch (e) {
-                // JSON 파싱 실패시 텍스트로 읽기
                 const errorText = await response.text();
                 errorMessage = errorText || `HTTP ${response.status}: ${response.statusText}`;
             }
@@ -597,7 +650,7 @@ async function sendDataToServer(answersPayload) {
     } catch (error) {
         clearTimeout(timeoutId);
         if (error.name === 'AbortError') {
-            throw new Error('요청 시간 초과: 서버 응답이 너무 오래 걸립니다.');
+            throw new Error('요청 시간 초과');
         }
         throw error;
     }
