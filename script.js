@@ -27,6 +27,7 @@ let currentQuestionIndex = 0;
 let interviewType = '';
 let lastSubmittedCode = "";
 let answerStartTime = null;
+let isSubmitting = false; // 중복 클릭 방지
 
 // --- URL 파라미터 및 경로 파싱 ---
 const urlParams = new URLSearchParams(window.location.search);
@@ -501,12 +502,17 @@ function startAnswer() {
 }
 
 async function submitAnswer() {
+    // 중복 클릭 방지
+    if (isSubmitting) return;
+    isSubmitting = true;
+
     // 최소 답변 시간 제한 체크 (구두 답변 문항 전체 적용)
     if (TIME_CONFIG.ENABLE_MIN_ANSWER_TIME && answerStartTime) {
         const elapsedSeconds = (Date.now() - answerStartTime) / 1000;
         if (elapsedSeconds < TIME_CONFIG.MIN_ANSWER_TIME) {
             const remainingSeconds = Math.ceil(TIME_CONFIG.MIN_ANSWER_TIME - elapsedSeconds);
             showToast(`최소 ${TIME_CONFIG.MIN_ANSWER_TIME}초 이상 답변해주세요. (${remainingSeconds}초 남음)`);
+            isSubmitting = false;
             return;
         }
     }
@@ -524,6 +530,7 @@ async function submitAnswer() {
     } catch (error) {
         console.error('업로드 실패:', error);
         alert('답변 저장에 실패했습니다: ' + error.message);
+        isSubmitting = false;
         return;
     }
 
@@ -531,6 +538,10 @@ async function submitAnswer() {
 }
 
 async function submitCode() {
+    // 중복 클릭 방지
+    if (isSubmitting) return;
+    isSubmitting = true;
+
     clearInterval(timerInterval);
     const code = codeEditor.value;
     lastSubmittedCode = code;
@@ -547,6 +558,7 @@ function showSavingAndNext() {
     showPage('saving');
     setTimeout(() => {
         currentQuestionIndex++;
+        isSubmitting = false; // 다음 질문을 위해 리셋
         startNextQuestion();
     }, TIME_CONFIG.SAVING_PAGE_DELAY);
 }
