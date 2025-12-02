@@ -4,9 +4,10 @@
 // ⚠️ 이 부분을 수정하여 면접 시간을 조절할 수 있습니다
 const TIME_CONFIG = {
     PREP_TIME: 3,              // 준비 시간 (초)
-    MIN_ANSWER_TIME: 30,//30       // 최소 답변 시간 (초)
+    MIN_ANSWER_TIME: 1,//30       // 최소 답변 시간 (초)
     ENABLE_MIN_ANSWER_TIME: true,  // ⭐ 최소 답변 시간 제한 활성화 (false로 설정하면 30초 제한 없이 바로 넘어갈 수 있음)
-    SAVING_PAGE_DELAY: 10000,  // 저장 페이지 대기 시간 (밀리초) - 10초
+    SAVING_PAGE_DELAY: 1000,//10000  // 저장 페이지 대기 시간 (밀리초) - 10초 (기본값, 자기소개용)
+    SAVING_PAGE_DELAY_SHORT: 1000,//5000  // 저장 페이지 대기 시간 (밀리초) - 5초 (코딩/설명 문항용)
 
     // 답변 시간 설정 (초)
     SELF_INTRO_TIME: 60,       // 자기소개 시간
@@ -129,11 +130,11 @@ const hardSkillQuestions = [
     {
         type: 'video',
         text: '1분동안 자기 소개를 해주세요.',
-        prepTime: 5,
-        answerTime: 60
+        prepTime: 3,//20
+        answerTime: 60//60
     },
 
-    // 코딩 문제 1
+    // 코딩 문제 1 (난이도 최하)
     {
         type: 'coding',
         text: `정수 num1, num2가 매개변수 주어집니다.
@@ -142,8 +143,8 @@ num1과 num2를 곱한 값을 return 하도록 solution 함수를 완성해주�
 제한사항:
 - 0 ≤ num1 ≤ 100
 - 0 ≤ num2 ≤ 100`,
-        prepTime: 5,
-        answerTime: 90
+        prepTime: 3,//20
+        answerTime: 90//90
     },
     {
         type: 'video',
@@ -152,12 +153,29 @@ num1과 num2를 곱한 값을 return 하도록 solution 함수를 완성해주�
 
 그리고 본인의 풀이가 올바른지 어떻게 검증할 수 있나요?
 예를 들어 어떤 입력 값을 테스트하고, 그 결과가 어떻게 나와야 하는지 설명해주세요.`,
-        prepTime: 5,
-        answerTime: 60,
+        prepTime: 3,//20
+        answerTime: 60,//60
         reviewCode: true
     },
 
-    // 코딩 문제 2
+    // 코딩 문제 2 (난이도 최하)
+    {
+        type: 'coding',
+        text: `if문을 사용해서 세 정수 a, b, c 중 최댓값을 구하는 프로그램을 만들어보세요.`,
+        prepTime: 3,//20
+        answerTime: 90//90
+    },
+    {
+        type: 'video',
+        text: `if문이 어떤 순서로 실행되는지 설명해주세요.
+
+만약 세 숫자가 모두 같다면 어떤 결과가 나올까요?`,
+        prepTime: 3,//20
+        answerTime: 60,//60
+        reviewCode: true
+    },
+
+    // 코딩 문제 3 (난이도 최하)
     {
         type: 'coding',
         text: `각에서 0도 초과 90도 미만은 예각, 90도는 직각, 90도 초과 180도 미만은 둔각 180도는 평각으로 분류합니다.
@@ -171,20 +189,20 @@ num1과 num2를 곱한 값을 return 하도록 solution 함수를 완성해주�
 제한사항:
 - 0 < angle ≤ 180
 - angle은 정수입니다.`,
-        prepTime: 5,
-        answerTime: 90
+        prepTime: 3,//20
+        answerTime: 90//90
     },
     {
         type: 'video',
         text: `작성하신 solution 함수에서 조건문 구조가 어떻게 동작하는지 설명해주세요.
 
 그리고 코드가 올바르게 동작하는지 검증하기위해 어떻게 하실건지 예시를 들어 설명해주세요.`,
-        prepTime: 5,
-        answerTime: 60,
+        prepTime: 3,//20
+        answerTime: 60,//60
         reviewCode: true
     },
 
-    // 코딩 문제 3
+    // 코딩 문제 4 (난이도 하)
     {
         type: 'coding',
         text: `자연수 N이 주어지면, N의 각 자릿수의 합을 구해서 return 하는 solution 함수를 만들어 주세요.
@@ -192,46 +210,16 @@ num1과 num2를 곱한 값을 return 하도록 solution 함수를 완성해주�
 
 제한사항:
 - N의 범위 : 100,000,000 이하의 자연수`,
-        prepTime: 5,
-        answerTime: 120
+        prepTime: 3,//20
+        answerTime: 90//90
     },
     {
         type: 'video',
         text: `작성하신 함수에서 자릿수를 더하는 과정이 어떻게 동작하는지 구체적으로 설명해주세요.
 
 그리고 만약 자릿수의 합이 아니라 자릿수의 곱을 구해야 한다면, 코드를 어떻게 바꾸실건지 설명하시고, 코드가 올바르게 동작하는지 확인하기 위해 어떤 입력값을 테스트할건지 예시를 들어 설명해주세요.`,
-        prepTime: 5,
-        answerTime: 60,
-        reviewCode: true
-    },
-
-    // 코딩 문제 4
-    {
-        type: 'coding',
-        text: `JadenCase란 모든 단어의 첫 문자가 대문자이고, 그 외의 알파벳은 소문자인 문자열입니다.
-단, 첫 문자가 알파벳이 아닐 때에는 이어지는 알파벳은 소문자로 쓰면 됩니다. (첫 번째 입출력 예 참고)
-문자열 s가 주어졌을 때, s를 JadenCase로 바꾼 문자열을 리턴하는 함수, solution을 완성해주세요.
-
-제한 조건:
-- s는 길이 1 이상 200 이하인 문자열입니다.
-- s는 알파벳과 숫자, 공백문자(" ")로 이루어져 있습니다.
-- 숫자는 단어의 첫 문자로만 나옵니다.
-- 숫자로만 이루어진 단어는 없습니다.
-- 공백문자가 연속해서 나올 수 있습니다.
-
-입출력 예:
-- s: "3people unFollowed me" -> return: "3people Unfollowed Me"
-- s: "for the last week" -> return: "For The Last Week"`,
-        prepTime: 5,
-        answerTime: 120
-    },
-    {
-        type: 'video',
-        text: `capitalize( ) 메서드를 쓸 수 있는데, 이 문제에서는 바로 쓰면 왜 안되는지 설명해주세요.
-
-그리고 다국어 문자열(예, 한글, 중국어)이 포함된 경우에는 어떻게 동작할까요?`,
-        prepTime: 5,
-        answerTime: 60,
+        prepTime: 3,//20
+        answerTime: 60,//60
         reviewCode: true
     },
 ];
@@ -556,11 +544,15 @@ async function submitCode() {
 
 function showSavingAndNext() {
     showPage('saving');
+    // 자기소개(첫 문항)는 10초, 나머지는 5초
+    const isIntro = (currentQuestionIndex === 0);
+    const delay = isIntro ? TIME_CONFIG.SAVING_PAGE_DELAY : TIME_CONFIG.SAVING_PAGE_DELAY_SHORT;
+
     setTimeout(() => {
         currentQuestionIndex++;
         isSubmitting = false; // 다음 질문을 위해 리셋
         startNextQuestion();
-    }, TIME_CONFIG.SAVING_PAGE_DELAY);
+    }, delay);
 }
 
 async function finishInterview() {
