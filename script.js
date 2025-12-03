@@ -152,7 +152,7 @@ const hardSkillQuestions = [
         reviewCode: true
     },
 
-    // 코딩 문제 2 (난이도 최하)
+    // 코딩 문제 2 (난이도 하)
     {
         type: 'coding',
         text: `if문을 사용해서 세 정수 a, b, c 중 최댓값을 구하는 프로그램을 만들어보세요.`,
@@ -169,7 +169,7 @@ const hardSkillQuestions = [
         reviewCode: true
     },
 
-    // 코딩 문제 3 (난이도 최하)
+    // 코딩 문제 3 (난이도 중)
     {
         type: 'coding',
         text: `각에서 0도 초과 90도 미만은 예각, 90도는 직각, 90도 초과 180도 미만은 둔각 180도는 평각으로 분류합니다.
@@ -196,7 +196,7 @@ const hardSkillQuestions = [
         reviewCode: true
     },
 
-    // 코딩 문제 4 (난이도 하)
+    // 코딩 문제 4 (난이도 상)
     {
         type: 'coding',
         text: `자연수 N이 주어지면, N의 각 자릿수의 합을 구해서 return 하는 solution 함수를 만들어 주세요.
@@ -205,7 +205,7 @@ const hardSkillQuestions = [
 제한사항:
 - N의 범위 : 100,000,000 이하의 자연수`,
         prepTime: 20,//20
-        answerTime: 90//90
+        answerTime: 120//120
     },
     {
         type: 'video',
