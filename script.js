@@ -4,7 +4,7 @@
 // ⚠️ 이 부분을 수정하여 면접 시간을 조절할 수 있습니다
 const TIME_CONFIG = {
     PREP_TIME: 3,              // 준비 시간 (초)
-    MIN_ANSWER_TIME: 1,//30       // 최소 답변 시간 (초)
+    MIN_ANSWER_TIME: 30,//30       // 최소 답변 시간 (초)
     ENABLE_MIN_ANSWER_TIME: true,  // ⭐ 최소 답변 시간 제한 활성화 (false로 설정하면 30초 제한 없이 바로 넘어갈 수 있음)
     SAVING_PAGE_DELAY: 1000,//10000  // 저장 페이지 대기 시간 (밀리초) - 10초 (기본값, 자기소개용)
     SAVING_PAGE_DELAY_SHORT: 1000,//5000  // 저장 페이지 대기 시간 (밀리초) - 5초 (코딩/설명 문항용)
@@ -130,20 +130,15 @@ const hardSkillQuestions = [
     {
         type: 'video',
         text: '1분동안 자기 소개를 해주세요.',
-        prepTime: 3,//20
+        prepTime: 20,//20
         answerTime: 60//60
     },
 
     // 코딩 문제 1 (난이도 최하)
     {
         type: 'coding',
-        text: `정수 num1, num2가 매개변수 주어집니다.
-num1과 num2를 곱한 값을 return 하도록 solution 함수를 완성해주세요.
-
-제한사항:
-- 0 ≤ num1 ≤ 100
-- 0 ≤ num2 ≤ 100`,
-        prepTime: 3,//20
+        text: `정수 num1, num2를 곱한 결과를 출력하는 프로그램을 만들어보세요.`,
+        prepTime: 20,//20
         answerTime: 90//90
     },
     {
@@ -153,7 +148,7 @@ num1과 num2를 곱한 값을 return 하도록 solution 함수를 완성해주�
 
 그리고 본인의 풀이가 올바른지 어떻게 검증할 수 있나요?
 예를 들어 어떤 입력 값을 테스트하고, 그 결과가 어떻게 나와야 하는지 설명해주세요.`,
-        prepTime: 3,//20
+        prepTime: 20,//20
         answerTime: 60,//60
         reviewCode: true
     },
@@ -162,7 +157,7 @@ num1과 num2를 곱한 값을 return 하도록 solution 함수를 완성해주�
     {
         type: 'coding',
         text: `if문을 사용해서 세 정수 a, b, c 중 최댓값을 구하는 프로그램을 만들어보세요.`,
-        prepTime: 3,//20
+        prepTime: 20,//20
         answerTime: 90//90
     },
     {
@@ -170,7 +165,7 @@ num1과 num2를 곱한 값을 return 하도록 solution 함수를 완성해주�
         text: `if문이 어떤 순서로 실행되는지 설명해주세요.
 
 만약 세 숫자가 모두 같다면 어떤 결과가 나올까요?`,
-        prepTime: 3,//20
+        prepTime: 20,//20
         answerTime: 60,//60
         reviewCode: true
     },
@@ -189,7 +184,7 @@ num1과 num2를 곱한 값을 return 하도록 solution 함수를 완성해주�
 제한사항:
 - 0 < angle ≤ 180
 - angle은 정수입니다.`,
-        prepTime: 3,//20
+        prepTime: 20,//20
         answerTime: 90//90
     },
     {
@@ -197,7 +192,7 @@ num1과 num2를 곱한 값을 return 하도록 solution 함수를 완성해주�
         text: `작성하신 solution 함수에서 조건문 구조가 어떻게 동작하는지 설명해주세요.
 
 그리고 코드가 올바르게 동작하는지 검증하기위해 어떻게 하실건지 예시를 들어 설명해주세요.`,
-        prepTime: 3,//20
+        prepTime: 20,//20
         answerTime: 60,//60
         reviewCode: true
     },
@@ -210,7 +205,7 @@ num1과 num2를 곱한 값을 return 하도록 solution 함수를 완성해주�
 
 제한사항:
 - N의 범위 : 100,000,000 이하의 자연수`,
-        prepTime: 3,//20
+        prepTime: 20,//20
         answerTime: 90//90
     },
     {
