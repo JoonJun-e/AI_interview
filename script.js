@@ -21,6 +21,7 @@ const TIME_CONFIG = {
 const userData = {};
 const userAnswers = [];
 const uploadedUrls = []; // 업로드된 파일의 URL을 저장
+const userCodes = []; // 코딩 문제 답변 코드를 저장
 let localStream, audioContext, analyser, mediaRecorder;
 let recordedChunks = [];
 let timerInterval, prepTimerInterval;
@@ -529,6 +530,9 @@ async function submitCode() {
     const codeBlob = new Blob([code], { type: 'text/plain' });
     userAnswers.push(codeBlob);
 
+    // 코드를 userCodes 배열에 저장 (스프레드시트 저장용)
+    userCodes.push(code);
+
     // 코드는 텍스트이므로 N/A로 저장
     uploadedUrls.push("N/A (코드 답변)");
 
@@ -555,8 +559,8 @@ async function finishInterview() {
     }
 
     try {
-        // 업로드된 URL 목록과 메타데이터만 전송
-        await sendMetadataToServer(uploadedUrls);
+        // 업로드된 URL 목록과 코드 데이터를 메타데이터로 전송
+        await sendMetadataToServer(uploadedUrls, userCodes);
         showPage('video');
         postInterviewPlayer.load();
         postInterviewPlayer.play().catch(() => {
@@ -617,8 +621,8 @@ async function uploadSingleAnswer(base64Audio, fileName) {
 }
 
 // 메타데이터만 서버에 전송
-async function sendMetadataToServer(audioUrls) {
-    const payload = { userInfo: userData, audioUrls, interviewType };
+async function sendMetadataToServer(audioUrls, codes = []) {
+    const payload = { userInfo: userData, audioUrls, codes, interviewType };
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 30000); // 30초

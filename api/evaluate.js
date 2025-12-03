@@ -15,9 +15,10 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { userInfo, audioUrls } = req.body;
+        const { userInfo, audioUrls, codes = [] } = req.body;
 
         console.log(`Received audio URLs:`, audioUrls);
+        console.log(`Received codes:`, codes);
 
         const sheetRow = [
             new Date().toISOString(),   // 제출 시간
@@ -25,6 +26,7 @@ export default async function handler(req, res) {
             userInfo.id,                // ID
             userInfo.testCondition,     // 선택한 조건 (pass/fail)
             audioUrls.join(', \n'),     // 모든 녹음 파일 링크
+            ...codes,                   // 코드 답변들 (각각 별도 컬럼)
         ];
 
         await appendToSheet(sheetRow);
