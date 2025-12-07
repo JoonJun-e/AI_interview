@@ -562,51 +562,11 @@ async function finishInterview() {
         // 업로드된 URL 목록과 코드 데이터를 메타데이터로 전송
         await sendMetadataToServer(uploadedUrls, userCodes);
         showPage('video');
-
-        // 영상 재생 안정화 로직
-        const videoLoadingMsg = document.getElementById('video-loading-msg');
-        const videoPlayManual = document.getElementById('video-play-manual');
-
-        videoLoadingMsg.style.display = 'block';
-        videoPlayManual.style.display = 'none';
-
         postInterviewPlayer.load();
-
-        // 영상이 재생 가능한 상태가 될 때까지 대기
-        postInterviewPlayer.addEventListener('canplay', async () => {
-            videoLoadingMsg.style.display = 'none';
-
-            try {
-                await postInterviewPlayer.play();
-                console.log('영상 자동 재생 성공');
-            } catch (error) {
-                console.log('자동 재생 실패, 수동 재생 요청:', error);
-                // 자동 재생 실패 시 음소거 후 재시도
-                postInterviewPlayer.muted = true;
-                try {
-                    await postInterviewPlayer.play();
-                    console.log('음소거 후 자동 재생 성공');
-                } catch (retryError) {
-                    // 음소거해도 실패하면 수동 재생 안내 표시
-                    console.log('음소거 재생도 실패, 수동 재생 안내 표시');
-                    videoPlayManual.style.display = 'block';
-                }
-            }
-        }, { once: true });
-
-        // 재생이 시작되면 안내 메시지 숨김
-        postInterviewPlayer.addEventListener('play', () => {
-            videoLoadingMsg.style.display = 'none';
-            videoPlayManual.style.display = 'none';
-        }, { once: true });
-
-        // 로드 오류 처리
-        postInterviewPlayer.addEventListener('error', (e) => {
-            console.error('영상 로드 오류:', e);
-            videoLoadingMsg.style.display = 'none';
-            videoPlayManual.style.display = 'block';
-        }, { once: true });
-
+        postInterviewPlayer.play().catch(() => {
+            postInterviewPlayer.muted = true;
+            postInterviewPlayer.play();
+        });
     } catch (error) {
         alert("데이터 저장에 실패했습니다: " + error.message);
         window.location.reload();
