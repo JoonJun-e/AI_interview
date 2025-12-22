@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>실험 테스트</title>
+    <style>
+        :root {
+            --primary-blue: #4a90e2;
+            --light-blue-bg: #f0f5fa;
+            --dark-text: #333;
+            --light-text: #555;
+            --border-color: #dee2e6;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            margin: 0;
+            padding: 3rem 1rem;
+            background-color: var(--light-blue-bg);
+            color: var(--dark-text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+        .page { width: 100%; max-width: 900px; text-align: center; }
+        .hidden { display: none !important; }
+        .content-box {
+            background-color: #fff;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+            padding: 40px;
+            border: 1px solid var(--border-color);
+        }
+        h1 {
+            font-size: 28px;
+            margin-top: 0;
+            color: var(--dark-text);
+            border-bottom: 2px solid var(--primary-blue);
+            padding-bottom: 15px;
+        }
+        p {
+            line-height: 1.8;
+            font-size: 16px;
+            color: var(--light-text);
+        }
+        button {
+            font-size: 16px;
+            padding: 12px 28px;
+            margin-top: 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            background-color: var(--primary-blue);
+            color: #fff;
+            transition: background-color 0.3s, transform 0.2s;
+            font-weight: 500;
+        }
+        button:hover {
+            background-color: #357abd;
+            transform: translateY(-2px);
+        }
+        video {
+            width: 100%;
+            max-width: 720px;
+            max-height: 500px;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            object-fit: contain;
+        }
+        .video-container {
+            position: relative;
+            display: inline-block;
+            margin: 20px 0;
+        }
+        .video-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: all;
+            cursor: default;
+        }
+        a.button-link {
+            display: inline-block;
+            padding: 12px 28px;
+            background-color: var(--primary-blue);
+            color: #fff;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 16px;
+            transition: background-color 0.3s, transform 0.2s;
+            margin-top: 20px;
+        }
+        a.button-link:hover {
+            background-color: #357abd;
+            transform: translateY(-2px);
+        }
+        /* 동영상 페이지 전용 스타일 */
+        #video-page {
+            background-color: #000;
+            max-width: 100%;
+            padding: 0;
+            margin: 0;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+        #video-page .content-box {
+            background-color: #000;
+            box-shadow: none;
+            border: none;
+            border-radius: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #video-page video {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            border-radius: 0;
+            box-shadow: none;
+        }
+        #video-page .video-container {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <!-- 화면 1: 실험 소개 -->
+    <div id="intro-page" class="page">
+        <div class="content-box">
+            <h1>실험 안내</h1>
+            <p style="margin: 30px 0;">
+                안녕하세요, 실험에 참여해주셔서 감사합니다.<br><br>
+                본 실험은 영상 시청 후 설문을 진행하는 방식으로 진행됩니다.<br>
+                실험을 시작하기 전에 오디오가 정상적으로 작동하는지 확인해주세요.
+            </p>
+            <button id="sound-check-btn">🔊 소리 확인하기</button>
+            <br>
+            <button id="intro-next-btn">다음</button>
+            <audio id="test-sound" src="https://storage.cloud.google.com/ai-interview-skku-is-2025/ai-test-voice.m4a"></audio>
+        </div>
+    </div>
+
+    <!-- 화면 2: 시나리오 -->
+    <div id="scenario-page" class="page hidden">
+        <div class="content-box" style="text-align: left;">
+            <h1>실험안내</h1>
+            <p style="margin: 30px 0;">
+                지금부터 당신은 취업 준비를 하며 스트레스와 압박을 느끼고 있는 대학생 [명륜]이라고 생각하고 실험에 참여하게 됩니다.<br>
+                최근 주변 친구들은 하나둘 합격 소식을 전하지만, 당신은 진로와 미래에 대한 고민으로 마음이 무거운 상태입니다.<br>
+                특히 혼자 있을 때면 불안과 답답함이 커지고, 누군가에게 솔직한 마음을 털어놓고 싶은 느낌이 들곤 합니다.<br><br>
+
+                이제 이어지는 대화의 흐름을 따라가며,<br>
+                마치 당신이 그 상황 속에서 AI와 상호작용하고 있는 것처럼 몰입해 주시면 됩니다.<br>
+                아래 [시작] 버튼을 눌러주세요
+            </p>
+            <div style="text-align: center;">
+                <button id="scenario-next-btn">영상 시청하기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 화면 3: 동영상 -->
+    <div id="video-page" class="page hidden">
+        <div class="content-box">
+            <div class="video-container">
+                <video id="test-video" playsinline>
+                    <source src="https://storage.cloud.google.com/ai-interview-skku-is-2025/ai-agent-test.mp4" type="video/mp4">
+                </video>
+                <div class="video-overlay"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 화면 4: 완료 -->
+    <div id="complete-page" class="page hidden">
+        <div class="content-box">
+            <h1>영상 시청 완료</h1>
+            <p style="margin: 30px 0;">
+                영상 시청이 완료되었습니다.<br><br>
+                아래 버튼을 클릭하여 다음 단계로 진행해주세요.
+            </p>
+            <div style="text-align: center;">
+                <a href="https://forms.gle/x76jNj9r4dPtover6" target="_blank" class="button-link">설문하러 가기</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="testc1.js"></script>
+</body>
+</html>
