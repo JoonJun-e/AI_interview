@@ -1,9 +1,13 @@
 {
   "rewrites": [
-    { "source": "/TSOA", "destination": "/?type=soft&result=pass" },
-    { "source": "/TSOR", "destination": "/?type=soft&result=fail" },
-    { "source": "/THOA", "destination": "/?type=hard&result=pass" },
-    { "source": "/THOR", "destination": "/?type=hard&result=fail" }
+    { "source": "/TSOA", "destination": "/index.html" },
+    { "source": "/TSOR", "destination": "/index.html" },
+    { "source": "/THOA", "destination": "/index.html" },
+    { "source": "/THOR", "destination": "/index.html" },
+    { "source": "/VSOA", "destination": "/index.html" },
+    { "source": "/VSOR", "destination": "/index.html" },
+    { "source": "/VHOA", "destination": "/index.html" },
+    { "source": "/VHOR", "destination": "/index.html" }
   ],
   "functions": {
     "api/evaluate.js": {
