@@ -38,6 +38,8 @@ let urlResult = urlParams.get('result'); // 'pass' or 'fail'
 
 // 경로 기반 파싱 (TSOA, TSOR, THOA, THOR)
 const pathname = window.location.pathname;
+let directPageAccess = null; // 직접 페이지 접근 확인
+
 if (pathname === '/TSOA') {
     urlType = 'soft';
     urlResult = 'pass';
@@ -50,6 +52,24 @@ if (pathname === '/TSOA') {
 } else if (pathname === '/THOR') {
     urlType = 'hard';
     urlResult = 'fail';
+}
+// 동영상 재생 → 결과 페이지 링크 (4개)
+else if (pathname === '/VSOA') {
+    directPageAccess = 'video';
+    interviewType = 'soft';
+    userData.testCondition = 'pass';
+} else if (pathname === '/VSOR') {
+    directPageAccess = 'video';
+    interviewType = 'soft';
+    userData.testCondition = 'fail';
+} else if (pathname === '/VHOA') {
+    directPageAccess = 'video';
+    interviewType = 'hard';
+    userData.testCondition = 'pass';
+} else if (pathname === '/VHOR') {
+    directPageAccess = 'video';
+    interviewType = 'hard';
+    userData.testCondition = 'fail';
 }
 
 // --- 질문 데이터 (실제 진행용) ---
@@ -659,8 +679,56 @@ async function sendMetadataToServer(audioUrls, codes = []) {
 
 // --- 이벤트 리스너 설정 ---
 window.addEventListener('load', () => {
+    // 직접 페이지 접근이 설정된 경우
+    if (directPageAccess) {
+        if (directPageAccess === 'video') {
+            showPage('video');
+            // 로딩 메시지 표시
+            const loadingMsg = document.getElementById('video-loading-msg');
+            const playManual = document.getElementById('video-play-manual');
+            loadingMsg.style.display = 'block';
+            playManual.style.display = 'none';
+
+            // 동영상 로드
+            postInterviewPlayer.load();
+
+            // loadeddata 이벤트 - 충분한 데이터가 로드되면 재생 시도
+            postInterviewPlayer.addEventListener('loadeddata', () => {
+                loadingMsg.style.display = 'none';
+                const playPromise = postInterviewPlayer.play();
+
+                if (playPromise !== undefined) {
+                    playPromise
+                        .then(() => {
+                            // 자동 재생 성공
+                            console.log('비디오 자동 재생 성공');
+                        })
+                        .catch(error => {
+                            // 자동 재생 실패 - 음소거 후 재시도
+                            console.log('자동 재생 실패, 음소거 후 재시도:', error);
+                            postInterviewPlayer.muted = true;
+                            postInterviewPlayer.play().catch(e => {
+                                console.log('음소거 재생도 실패:', e);
+                                // 사용자에게 수동 재생 안내
+                                playManual.style.display = 'block';
+                            });
+                        });
+                }
+            }, { once: true });
+
+            // error 이벤트 - 로딩 실패 시 처리
+            postInterviewPlayer.addEventListener('error', (e) => {
+                console.error('비디오 로딩 실패:', e);
+                loadingMsg.textContent = '영상 로딩에 실패했습니다. 페이지를 새로고침해주세요.';
+                loadingMsg.style.color = '#e74c3c';
+            }, { once: true });
+        } else {
+            // 결과 페이지 직접 접근
+            showPage(directPageAccess);
+        }
+    }
     // URL 파라미터가 있으면 자동으로 설정
-    if (urlType && urlResult) {
+    else if (urlType && urlResult) {
         interviewType = urlType; // 'soft' or 'hard'
         userData.testCondition = urlResult; // 'pass' or 'fail'
         showPage('userInfo');
