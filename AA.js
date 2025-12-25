@@ -1,10 +1,13 @@
-// ===== AA (Audio + Agent) 컨디션 JavaScript =====
+// ===== TA (Text + Agent) 컨디션 JavaScript =====
 
 const CONDITION = 'AA'; // 현재 컨디션
+let selectedGender = ''; // 선택된 성별 (M 또는 W)
+let response1 = ''; // 첫 번째 답변 저장
 
 // 페이지 요소
 const pages = {
     intro: document.getElementById('intro-page'),
+    gender: document.getElementById('gender-page'),
     scenario: document.getElementById('scenario-page'),
     video1: document.getElementById('video1-page'),
     response1: document.getElementById('response1-page'),
@@ -16,6 +19,8 @@ const pages = {
 // 버튼 요소
 const soundCheckBtn = document.getElementById('sound-check-btn');
 const introNextBtn = document.getElementById('intro-next-btn');
+const genderMaleBtn = document.getElementById('gender-male-btn');
+const genderFemaleBtn = document.getElementById('gender-female-btn');
 const scenarioNextBtn = document.getElementById('scenario-next-btn');
 const response1SubmitBtn = document.getElementById('response1-submit');
 const response2SubmitBtn = document.getElementById('response2-submit');
@@ -48,14 +53,36 @@ soundCheckBtn.addEventListener('click', () => {
     });
 });
 
-// 실험 소개 -> 시나리오
+// 실험 소개 -> 성별 선택
 introNextBtn.addEventListener('click', () => {
     if (testSound) {
         testSound.pause();
         testSound.currentTime = 0;
     }
+    showPage('gender');
+});
+
+// 성별 선택 -> 시나리오
+genderMaleBtn.addEventListener('click', () => {
+    selectedGender = 'M';
+    updateVideoSources();
     showPage('scenario');
 });
+
+genderFemaleBtn.addEventListener('click', () => {
+    selectedGender = 'W';
+    updateVideoSources();
+    showPage('scenario');
+});
+
+// 선택된 성별에 따라 동영상 URL 업데이트
+function updateVideoSources() {
+    const video1Source = video1.querySelector('source');
+    const video2Source = video2.querySelector('source');
+
+    video1Source.src = `https://storage.cloud.google.com/ai-interview-skku-is-2025/${selectedGender}_AA_S1.mp4`;
+    video2Source.src = `https://storage.cloud.google.com/ai-interview-skku-is-2025/${selectedGender}_AA_S2.mp4`;
+}
 
 // 시나리오 -> 동영상 1
 scenarioNextBtn.addEventListener('click', () => {
@@ -101,8 +128,8 @@ video1.addEventListener('ended', () => {
     showPage('response1');
 });
 
-// 주관식 답변 1 제출 -> 동영상 2
-response1SubmitBtn.addEventListener('click', async () => {
+// 주관식 답변 1 제출 -> 동영상 2 (답변을 로컬에 저장만)
+response1SubmitBtn.addEventListener('click', () => {
     const answer = response1Text.value.trim();
 
     if (!answer) {
@@ -110,23 +137,12 @@ response1SubmitBtn.addEventListener('click', async () => {
         return;
     }
 
-    // 버튼 비활성화
-    response1SubmitBtn.disabled = true;
-    response1SubmitBtn.textContent = '제출 중...';
+    // 첫 번째 답변 저장
+    response1 = answer;
 
-    try {
-        // Google Sheets에 저장
-        await saveResponse(CONDITION, 'S1', answer);
-
-        // 다음 페이지로 이동
-        showPage('video2');
-        playVideo(video2);
-    } catch (error) {
-        console.error('답변 저장 실패:', error);
-        alert('답변 저장에 실패했습니다. 다시 시도해주세요.');
-        response1SubmitBtn.disabled = false;
-        response1SubmitBtn.textContent = '다음';
-    }
+    // 다음 페이지로 이동
+    showPage('video2');
+    playVideo(video2);
 });
 
 // 동영상 2 종료 -> 주관식 답변 2
@@ -134,7 +150,7 @@ video2.addEventListener('ended', () => {
     showPage('response2');
 });
 
-// 주관식 답변 2 제출 -> 완료
+// 주관식 답변 2 제출 -> 완료 (두 답변을 한 번에 저장)
 response2SubmitBtn.addEventListener('click', async () => {
     const answer = response2Text.value.trim();
 
@@ -148,8 +164,8 @@ response2SubmitBtn.addEventListener('click', async () => {
     response2SubmitBtn.textContent = '제출 중...';
 
     try {
-        // Google Sheets에 저장
-        await saveResponse(CONDITION, 'S2', answer);
+        // Google Sheets에 두 답변을 한 번에 저장
+        await saveResponses(CONDITION, selectedGender, response1, answer);
 
         // 완료 페이지로 이동
         showPage('complete');
@@ -162,7 +178,7 @@ response2SubmitBtn.addEventListener('click', async () => {
 });
 
 // Google Sheets에 답변 저장하는 함수
-async function saveResponse(condition, videoNumber, response) {
+async function saveResponses(condition, gender, response_s1, response_s2) {
     const res = await fetch('/api/save-response', {
         method: 'POST',
         headers: {
@@ -170,8 +186,9 @@ async function saveResponse(condition, videoNumber, response) {
         },
         body: JSON.stringify({
             condition: condition,
-            videoNumber: videoNumber,
-            response: response
+            gender: gender,
+            response_s1: response_s1,
+            response_s2: response_s2
         })
     });
 
