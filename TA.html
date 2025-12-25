@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>실험 테스트 - TC</title>
+    <title>실험 테스트 - TA</title>
     <style>
         :root {
             --primary-blue: #4a90e2;
@@ -60,6 +60,11 @@
             background-color: #357abd;
             transform: translateY(-2px);
         }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
         video {
             width: 100%;
             max-width: 720px;
@@ -99,7 +104,7 @@
             transform: translateY(-2px);
         }
         /* 동영상 페이지 전용 스타일 */
-        #video-page {
+        .video-page {
             background-color: #000;
             max-width: 100%;
             padding: 0;
@@ -113,7 +118,7 @@
             top: 0;
             left: 0;
         }
-        #video-page .content-box {
+        .video-page .content-box {
             background-color: #000;
             box-shadow: none;
             border: none;
@@ -125,7 +130,7 @@
             justify-content: center;
             align-items: center;
         }
-        #video-page video {
+        .video-page video {
             max-width: 100%;
             max-height: 100%;
             width: auto;
@@ -133,7 +138,7 @@
             border-radius: 0;
             box-shadow: none;
         }
-        #video-page .video-container {
+        .video-page .video-container {
             margin: 0;
             width: 100%;
             height: 100%;
@@ -141,10 +146,31 @@
             justify-content: center;
             align-items: center;
         }
+        /* 주관식 답변 입력 스타일 */
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 16px;
+            font-family: inherit;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+        .response-container {
+            text-align: left;
+            margin: 20px 0;
+        }
+        .response-container label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--dark-text);
+        }
     </style>
 </head>
 <body>
-    <!-- 화면 1: 실험 소개 -->
     <!-- 화면 1: 실험 안내 -->
     <div id="intro-page" class="page">
         <div class="content-box">
@@ -191,7 +217,7 @@
         <div class="content-box">
             <div class="video-container">
                 <video id="video1" playsinline>
-                    <source src="https://storage.cloud.google.com/ai-interview-skku-is-2025/M_TC_S1.mp4" type="video/mp4">
+                    <source src="https://storage.cloud.google.com/ai-interview-skku-is-2025/M_TA_S1.mp4" type="video/mp4">
                 </video>
                 <div class="video-overlay"></div>
             </div>
@@ -215,7 +241,7 @@
         <div class="content-box">
             <div class="video-container">
                 <video id="video2" playsinline>
-                    <source src="https://storage.cloud.google.com/ai-interview-skku-is-2025/M_TC_S2.mp4" type="video/mp4">
+                    <source src="https://storage.cloud.google.com/ai-interview-skku-is-2025/M_TA_S2.mp4" type="video/mp4">
                 </video>
                 <div class="video-overlay"></div>
             </div>
@@ -243,11 +269,11 @@
                 아래 버튼을 클릭하여 설문을 진행해주세요.
             </p>
             <div style="text-align: center;">
-                <a href="https://forms.gle/XULa5fxtk8xRCh8c8" target="_blank" class="button-link">설문하러 가기</a>
+                <a href="https://forms.gle/SXDai3C1E3rUdjGh9" target="_blank" class="button-link">설문하러 가기</a>
             </div>
         </div>
     </div>
 
-    <script src="testc1.js"></script>
+    <script src="TA.js"></script>
 </body>
 </html>
