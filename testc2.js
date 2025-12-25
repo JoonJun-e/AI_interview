@@ -1,10 +1,15 @@
-// ===== 테스트 프로젝트 JavaScript =====
+// ===== AA (Audio + Agent) 컨디션 JavaScript =====
+
+const CONDITION = 'AA'; // 현재 컨디션
 
 // 페이지 요소
 const pages = {
     intro: document.getElementById('intro-page'),
     scenario: document.getElementById('scenario-page'),
-    video: document.getElementById('video-page'),
+    video1: document.getElementById('video1-page'),
+    response1: document.getElementById('response1-page'),
+    video2: document.getElementById('video2-page'),
+    response2: document.getElementById('response2-page'),
     complete: document.getElementById('complete-page')
 };
 
@@ -12,10 +17,17 @@ const pages = {
 const soundCheckBtn = document.getElementById('sound-check-btn');
 const introNextBtn = document.getElementById('intro-next-btn');
 const scenarioNextBtn = document.getElementById('scenario-next-btn');
+const response1SubmitBtn = document.getElementById('response1-submit');
+const response2SubmitBtn = document.getElementById('response2-submit');
 
 // 오디오/비디오 요소
 const testSound = document.getElementById('test-sound');
-const testVideo = document.getElementById('test-video');
+const video1 = document.getElementById('video1');
+const video2 = document.getElementById('video2');
+
+// 답변 입력 요소
+const response1Text = document.getElementById('response1-text');
+const response2Text = document.getElementById('response2-text');
 
 // 페이지 전환 함수
 function showPage(pageKey) {
@@ -38,7 +50,6 @@ soundCheckBtn.addEventListener('click', () => {
 
 // 실험 소개 -> 시나리오
 introNextBtn.addEventListener('click', () => {
-    // 오디오 중지
     if (testSound) {
         testSound.pause();
         testSound.currentTime = 0;
@@ -46,25 +57,26 @@ introNextBtn.addEventListener('click', () => {
     showPage('scenario');
 });
 
-// 시나리오 -> 동영상
+// 시나리오 -> 동영상 1
 scenarioNextBtn.addEventListener('click', () => {
-    showPage('video');
-    // 동영상 로드 및 자동 재생 시도
-    testVideo.load();
+    showPage('video1');
+    playVideo(video1);
+});
 
-    // 로딩 시작 후 3초 동안 데이터가 로드되지 않으면 에러 표시
+// 동영상 재생 함수
+function playVideo(videoElement) {
+    videoElement.load();
+
     const loadTimeout = setTimeout(() => {
-        if (testVideo.readyState < 2) { // HAVE_CURRENT_DATA 미만
+        if (videoElement.readyState < 2) {
             console.error('비디오 로딩 타임아웃');
-            const errorMsg = document.getElementById('video-error');
-            if (errorMsg) errorMsg.style.display = 'block';
         }
     }, 5000);
 
-    testVideo.addEventListener('loadeddata', () => {
+    videoElement.addEventListener('loadeddata', () => {
         clearTimeout(loadTimeout);
         console.log('비디오 로딩 성공');
-        const playPromise = testVideo.play();
+        const playPromise = videoElement.play();
 
         if (playPromise !== undefined) {
             playPromise
@@ -73,24 +85,104 @@ scenarioNextBtn.addEventListener('click', () => {
                 })
                 .catch(error => {
                     console.log('자동 재생 실패:', error);
-                    // 자동 재생 실패 시에도 재생 시도
-                    testVideo.play().catch(e => console.error('재생 실패:', e));
+                    videoElement.play().catch(e => console.error('재생 실패:', e));
                 });
         }
     }, { once: true });
 
-    testVideo.addEventListener('error', (e) => {
+    videoElement.addEventListener('error', (e) => {
         clearTimeout(loadTimeout);
         console.error('비디오 로딩 에러:', e);
-        const errorMsg = document.getElementById('video-error');
-        if (errorMsg) errorMsg.style.display = 'block';
     }, { once: true });
+}
+
+// 동영상 1 종료 -> 주관식 답변 1
+video1.addEventListener('ended', () => {
+    showPage('response1');
 });
 
-// 동영상 종료 -> 완료 페이지
-testVideo.addEventListener('ended', () => {
-    showPage('complete');
+// 주관식 답변 1 제출 -> 동영상 2
+response1SubmitBtn.addEventListener('click', async () => {
+    const answer = response1Text.value.trim();
+
+    if (!answer) {
+        alert('답변을 입력해주세요.');
+        return;
+    }
+
+    // 버튼 비활성화
+    response1SubmitBtn.disabled = true;
+    response1SubmitBtn.textContent = '제출 중...';
+
+    try {
+        // Google Sheets에 저장
+        await saveResponse(CONDITION, 'S1', answer);
+
+        // 다음 페이지로 이동
+        showPage('video2');
+        playVideo(video2);
+    } catch (error) {
+        console.error('답변 저장 실패:', error);
+        alert('답변 저장에 실패했습니다. 다시 시도해주세요.');
+        response1SubmitBtn.disabled = false;
+        response1SubmitBtn.textContent = '다음';
+    }
 });
+
+// 동영상 2 종료 -> 주관식 답변 2
+video2.addEventListener('ended', () => {
+    showPage('response2');
+});
+
+// 주관식 답변 2 제출 -> 완료
+response2SubmitBtn.addEventListener('click', async () => {
+    const answer = response2Text.value.trim();
+
+    if (!answer) {
+        alert('답변을 입력해주세요.');
+        return;
+    }
+
+    // 버튼 비활성화
+    response2SubmitBtn.disabled = true;
+    response2SubmitBtn.textContent = '제출 중...';
+
+    try {
+        // Google Sheets에 저장
+        await saveResponse(CONDITION, 'S2', answer);
+
+        // 완료 페이지로 이동
+        showPage('complete');
+    } catch (error) {
+        console.error('답변 저장 실패:', error);
+        alert('답변 저장에 실패했습니다. 다시 시도해주세요.');
+        response2SubmitBtn.disabled = false;
+        response2SubmitBtn.textContent = '제출';
+    }
+});
+
+// Google Sheets에 답변 저장하는 함수
+async function saveResponse(condition, videoNumber, response) {
+    const res = await fetch('/api/save-response', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            condition: condition,
+            videoNumber: videoNumber,
+            response: response
+        })
+    });
+
+    if (!res.ok) {
+        throw new Error('Failed to save response');
+    }
+
+    const data = await res.json();
+    console.log('Response saved:', data);
+    return data;
+}
 
 // 페이지 로드 시 실험 소개 화면 표시
 window.addEventListener('load', () => {
