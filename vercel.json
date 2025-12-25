@@ -8,10 +8,10 @@
     { "source": "/VSOR", "destination": "/index.html" },
     { "source": "/VHOA", "destination": "/index.html" },
     { "source": "/VHOR", "destination": "/index.html" },
-    { "source": "/test", "destination": "/test.html" },
-    { "source": "/testc4", "destination": "/testc4.html" },
-    { "source": "/testc2", "destination": "/testc2.html" },
-    { "source": "/testc1", "destination": "/testc1.html" }
+    { "source": "/TA", "destination": "/TA.html" },
+    { "source": "/TC", "destination": "/TC.html" },
+    { "source": "/AA", "destination": "/AA.html" },
+    { "source": "/AC", "destination": "/AC.html" }
   ],
   "functions": {
     "api/evaluate.js": {
