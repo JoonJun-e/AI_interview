@@ -26,8 +26,11 @@ export default async function handler(req, res) {
 
         const sheets = google.sheets({ version: 'v4', auth });
 
-        // 저장할 데이터 구성
-        const timestamp = new Date().toISOString();
+        // 저장할 데이터 구성 (한국 표준시 KST, UTC+9)
+        const now = new Date();
+        const kstOffset = 9 * 60 * 60 * 1000; // 9시간을 밀리초로
+        const kstTime = new Date(now.getTime() + kstOffset);
+        const timestamp = kstTime.toISOString().replace('T', ' ').substring(0, 19);
         const rowData = [timestamp, condition, name, gender, response_s1, response_s2];
 
         // Google Sheets에 데이터 추가
