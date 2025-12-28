@@ -1,12 +1,14 @@
 // ===== TA (Text + Agent) 컨디션 JavaScript =====
 
 const CONDITION = 'TC'; // 현재 컨디션
+let participantName = ''; // 참가자 이름
 let selectedGender = ''; // 선택된 성별 (M 또는 W)
 let response1 = ''; // 첫 번째 답변 저장
 
 // 페이지 요소
 const pages = {
     intro: document.getElementById('intro-page'),
+    name: document.getElementById('name-page'),
     gender: document.getElementById('gender-page'),
     scenario: document.getElementById('scenario-page'),
     video1: document.getElementById('video1-page'),
@@ -19,6 +21,7 @@ const pages = {
 // 버튼 요소
 const soundCheckBtn = document.getElementById('sound-check-btn');
 const introNextBtn = document.getElementById('intro-next-btn');
+const nameNextBtn = document.getElementById('name-next-btn');
 const genderMaleBtn = document.getElementById('gender-male-btn');
 const genderFemaleBtn = document.getElementById('gender-female-btn');
 const scenarioNextBtn = document.getElementById('scenario-next-btn');
@@ -31,6 +34,7 @@ const video1 = document.getElementById('video1');
 const video2 = document.getElementById('video2');
 
 // 답변 입력 요소
+const nameInput = document.getElementById('name-input');
 const response1Text = document.getElementById('response1-text');
 const response2Text = document.getElementById('response2-text');
 
@@ -53,12 +57,25 @@ soundCheckBtn.addEventListener('click', () => {
     });
 });
 
-// 실험 소개 -> 성별 선택
+// 실험 소개 -> 이름 입력
 introNextBtn.addEventListener('click', () => {
     if (testSound) {
         testSound.pause();
         testSound.currentTime = 0;
     }
+    showPage('name');
+});
+
+// 이름 입력 -> 성별 선택
+nameNextBtn.addEventListener('click', () => {
+    const name = nameInput.value.trim();
+
+    if (!name) {
+        alert('이름을 입력해주세요.');
+        return;
+    }
+
+    participantName = name;
     showPage('gender');
 });
 
@@ -165,7 +182,7 @@ response2SubmitBtn.addEventListener('click', async () => {
 
     try {
         // Google Sheets에 두 답변을 한 번에 저장
-        await saveResponses(CONDITION, selectedGender, response1, answer);
+        await saveResponses(CONDITION, participantName, selectedGender, response1, answer);
 
         // 완료 페이지로 이동
         showPage('complete');
@@ -178,7 +195,7 @@ response2SubmitBtn.addEventListener('click', async () => {
 });
 
 // Google Sheets에 답변 저장하는 함수
-async function saveResponses(condition, gender, response_s1, response_s2) {
+async function saveResponses(condition, name, gender, response_s1, response_s2) {
     const res = await fetch('/api/save-response', {
         method: 'POST',
         headers: {
@@ -186,6 +203,7 @@ async function saveResponses(condition, gender, response_s1, response_s2) {
         },
         body: JSON.stringify({
             condition: condition,
+            name: name,
             gender: gender,
             response_s1: response_s1,
             response_s2: response_s2
