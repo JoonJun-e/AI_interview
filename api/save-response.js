@@ -11,10 +11,10 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { condition, gender, response_s1, response_s2 } = req.body;
+        const { condition, name, gender, response_s1, response_s2 } = req.body;
 
-        if (!condition || !gender || !response_s1 || !response_s2) {
-            return res.status(400).json({ error: 'Missing required fields: condition, gender, response_s1, response_s2' });
+        if (!condition || !name || !gender || !response_s1 || !response_s2) {
+            return res.status(400).json({ error: 'Missing required fields: condition, name, gender, response_s1, response_s2' });
         }
 
         // 서비스 어카운트 인증
@@ -28,19 +28,19 @@ export default async function handler(req, res) {
 
         // 저장할 데이터 구성
         const timestamp = new Date().toISOString();
-        const rowData = [timestamp, condition, gender, response_s1, response_s2];
+        const rowData = [timestamp, condition, name, gender, response_s1, response_s2];
 
         // Google Sheets에 데이터 추가
         await sheets.spreadsheets.values.append({
             spreadsheetId: SPREADSHEET_ID,
-            range: `${SHEET_NAME}!A:E`, // A열~E열까지
+            range: `${SHEET_NAME}!A:F`, // A열~F열까지
             valueInputOption: 'USER_ENTERED',
             resource: {
                 values: [rowData]
             }
         });
 
-        console.log(`Response saved: ${condition} - ${gender}`);
+        console.log(`Response saved: ${condition} - ${name} (${gender})`);
         res.status(200).json({ status: 'success', message: 'Response saved to Google Sheets' });
 
     } catch (error) {
