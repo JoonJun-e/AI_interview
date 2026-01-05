@@ -8,10 +8,7 @@
     { "source": "/VSOR", "destination": "/index.html" },
     { "source": "/VHOA", "destination": "/index.html" },
     { "source": "/VHOR", "destination": "/index.html" },
-    { "source": "/TA", "destination": "/TA.html" },
-    { "source": "/TC", "destination": "/TC.html" },
-    { "source": "/AA", "destination": "/AA.html" },
-    { "source": "/AC", "destination": "/AC.html" }
+    { "source": "/TC", "destination": "/TC.html" }
   ],
   "functions": {
     "api/evaluate.js": {
