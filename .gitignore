@@ -1,4 +1,6 @@
-# Google Cloud credentials
+# Secrets & credentials
+.env.local
+.env
 gcp-credentials.json
 
 # Node.js dependencies
@@ -7,3 +9,10 @@ node_modules/
 # Mac system files
 .DS_Store
 .vercel
+
+# Large files
+*.webm
+*.mp4
+*.mov
+analysis/interviews/videos/
+venv/
